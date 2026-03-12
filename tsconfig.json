@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./client/tsconfig.app.json" },
+    { "path": "./client/tsconfig.node.json" },
+    { "path": "./server/tsconfig.app.json" },
+    { "path": "./server/tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["DOM", "ESNext"],
+    "module": "ESNext",
+    "baseUrl": "./",
+    "paths": { "@/*": ["client/src/*"] }
+  }
+}
