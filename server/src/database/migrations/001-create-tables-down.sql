@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS reports;
+DROP TABLE IF EXISTS user_block;
+DROP TABLE IF EXISTS user_note;
+DROP TABLE IF EXISTS membership;
+DROP TABLE IF EXISTS friendship;
+DROP TABLE IF EXISTS message_attachment;
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS conversation_members;
+DROP TABLE IF EXISTS conversations;
+DROP TABLE IF EXISTS groups;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS migrations;
