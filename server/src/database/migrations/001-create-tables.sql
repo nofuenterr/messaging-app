@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash VARCHAR(255) NOT NULL,
   avatar_color TEXT NOT NULL,
   avatar_url VARCHAR(255) DEFAULT '/images/user/avatar/default.webp',
-  user_role VARCHAR(10) CHECK (role IN ('admin','user')) NOT NULL DEFAULT 'user',
+  user_role VARCHAR(10) CHECK (user_role IN ('admin','user')) NOT NULL DEFAULT 'user',
   deleted TIMESTAMPTZ
 );
 
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS groups (
 CREATE TABLE IF NOT EXISTS conversations (
   id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  conversation_type VARCHAR(10) CHECK (type IN ('dm','group')) NOT NULL,
+  conversation_type VARCHAR(10) CHECK (conversation_type IN ('dm','group')) NOT NULL,
   group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE -- Only exists when type='group'
 );
 
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS messages (
   author_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
   conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
   reply_to INTEGER REFERENCES messages(id),
-  message_type VARCHAR(10) CHECK (type IN ('text','system')) NOT NULL DEFAULT 'text',
+  message_type VARCHAR(10) CHECK (message_type IN ('text','system')) NOT NULL DEFAULT 'text',
   system_event_type VARCHAR(20) 
   CHECK (system_event_type IN ('user_join','user_leave', 'group_rename', 'user_pin')) -- Only exists when type='system',
   content TEXT NOT NULL, -- Validate character limit client-side
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS friendship (
   created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   requester_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  friendship_status VARCHAR(10) CHECK (status IN ('pending','accepted', 'declined')) NOT NULL DEFAULT 'pending',
+  friendship_status VARCHAR(10) CHECK (friendship_status IN ('pending','accepted', 'declined')) NOT NULL DEFAULT 'pending',
   PRIMARY KEY (requester_id, receiver_id),
   CHECK (requester_id <> receiver_id)
 );
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS membership (
   joined TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   group_nickname VARCHAR(50),
   group_pronouns VARCHAR(20),
-  membership_role VARCHAR(10) CHECK (role IN ('owner','admin', 'member')) NOT NULL DEFAULT 'member',
+  membership_role VARCHAR(10) CHECK (membership_role IN ('owner','admin', 'member')) NOT NULL DEFAULT 'member',
   PRIMARY KEY (group_id, user_id),
   left TIMESTAMPTZ
 );
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS reports (
   target_message_id INTEGER REFERENCES messages(id) ON DELETE SET NULL,
   target_group_id INTEGER REFERENCES groups(id)  ON DELETE SET NULL, 
   reason VARCHAR(255) NOT NULL, -- Validate character limit client-side
-  report_status VARCHAR(10) CHECK (status IN ('open','reviewed', 'resolved')) NOT NULL DEFAULT 'open',
+  report_status VARCHAR(10) CHECK (report_status IN ('open','reviewed', 'resolved')) NOT NULL DEFAULT 'open',
 );
 
 -- Indexes
