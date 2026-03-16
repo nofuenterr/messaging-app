@@ -6,10 +6,12 @@ CREATE TABLE IF NOT EXISTS users (
   pronouns VARCHAR(20),
   bio VARCHAR(190),
   password_hash VARCHAR(255) NOT NULL,
-  avatar_color TEXT NOT NULL,
+  avatar_color TEXT NOT NULL DEFAULT '#b8aafe',
   avatar_url VARCHAR(255) DEFAULT '/images/user/avatar/default.webp',
   user_role VARCHAR(10) CHECK (user_role IN ('admin','user')) NOT NULL DEFAULT 'user',
-  deleted TIMESTAMPTZ
+  deleted TIMESTAMPTZ,
+  CHECK (TRIM(username) <> ''),
+  CHECK (password_hash <> '')
 );
 
 CREATE TABLE IF NOT EXISTS groups (
@@ -17,31 +19,65 @@ CREATE TABLE IF NOT EXISTS groups (
   created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   owner_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
   group_name VARCHAR(50) NOT NULL,
-  group_description TEXT, -- Validate character limit client-side
+  group_description TEXT,
   avatar_color TEXT NOT NULL,
   avatar_url VARCHAR(255) DEFAULT '/images/group/avatar/default.webp',
-  deleted TIMESTAMPTZ
+  deleted TIMESTAMPTZ,
+  CHECK (TRIM(group_name) <> '')
 );
 
 CREATE TABLE IF NOT EXISTS conversations (
   id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   conversation_type VARCHAR(10) CHECK (conversation_type IN ('dm','group')) NOT NULL,
-  group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE -- Only exists when type='group'
+  latest_message_id INTEGER,
+  group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+  dm_user1 INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  dm_user2 INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  CHECK (
+    (
+      conversation_type = 'group' 
+      AND group_id IS NOT NULL 
+      AND dm_user1 IS NULL 
+      AND dm_user2 IS NULL
+    )
+    OR
+    (
+      conversation_type = 'dm' 
+      AND group_id IS NULL 
+      AND dm_user1 IS NOT NULL 
+      AND dm_user2 IS NOT NULL
+    )
+  ),
+  CHECK (dm_user1 IS NULL OR dm_user1 <> dm_user2)
 );
 
 CREATE TABLE IF NOT EXISTS messages (
   id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  author_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  author_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
   conversation_id INTEGER NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
   reply_to INTEGER REFERENCES messages(id),
   message_type VARCHAR(10) CHECK (message_type IN ('text','system')) NOT NULL DEFAULT 'text',
   system_event_type VARCHAR(20) 
-  CHECK (system_event_type IN ('user_join','user_leave', 'group_rename', 'user_pin')) -- Only exists when type='system',
-  content TEXT NOT NULL, -- Validate character limit client-side
+  CHECK (
+    (
+      message_type = 'system'
+      AND system_event_type IS NOT NULL
+      AND system_event_type IN ('user_join','user_leave','group_rename','user_pin')
+      AND author_id IS NULL
+    )
+    OR
+    (
+      message_type = 'text'
+      AND system_event_type IS NULL
+      AND author_id IS NOT NULL
+    )
+  ),
+  content TEXT NOT NULL,
   last_edited TIMESTAMPTZ,
-  deleted TIMESTAMPTZ
+  deleted TIMESTAMPTZ,
+  CHECK (TRIM(content) <> '')
 );
 
 CREATE TABLE IF NOT EXISTS conversation_members (
@@ -54,12 +90,11 @@ CREATE TABLE IF NOT EXISTS conversation_members (
 CREATE TABLE IF NOT EXISTS message_attachment (
   id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   message_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
-  file_url TEXT, -- Validate character limit client-side
-  file_type TEXT, -- Validate character limit client-side
-  file_size INTEGER -- Convert to MB in UI
+  file_url TEXT,
+  file_type TEXT,
+  file_size INTEGER
 );
 
--- Unfriending user should remove appropriate row
 CREATE TABLE IF NOT EXISTS friendship (
   created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   requester_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -77,22 +112,23 @@ CREATE TABLE IF NOT EXISTS membership (
   group_pronouns VARCHAR(20),
   membership_role VARCHAR(10) CHECK (membership_role IN ('owner','admin', 'member')) NOT NULL DEFAULT 'member',
   PRIMARY KEY (group_id, user_id),
-  left TIMESTAMPTZ
+  left_at TIMESTAMPTZ,
+  CHECK (group_nickname IS NULL OR TRIM(group_nickname) <> '')
 );
 
--- Blocking user should remove appropriate friendship row (if it exists)
 CREATE TABLE IF NOT EXISTS user_block (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   blocked_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   blocked TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (user_id, blocked_user_id)
+  PRIMARY KEY (user_id, blocked_user_id),
+  CHECK (user_id <> blocked_user_id)
 );
 
 CREATE TABLE IF NOT EXISTS user_note (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   noted_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   noted TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  content VARCHAR(255), -- Validate character limit client-side
+  content VARCHAR(255),
   PRIMARY KEY (user_id, noted_user_id)
 );
 
@@ -103,30 +139,34 @@ CREATE TABLE IF NOT EXISTS reports (
   target_user_id INTEGER REFERENCES users(id)  ON DELETE SET NULL,
   target_message_id INTEGER REFERENCES messages(id) ON DELETE SET NULL,
   target_group_id INTEGER REFERENCES groups(id)  ON DELETE SET NULL, 
-  reason VARCHAR(255) NOT NULL, -- Validate character limit client-side
+  reason VARCHAR(255) NOT NULL,
   report_status VARCHAR(10) CHECK (report_status IN ('open','reviewed', 'resolved')) NOT NULL DEFAULT 'open',
+  CHECK (TRIM(reason) <> '')
 );
 
--- Indexes
--- Fetch messages in a conversation quickly
-CREATE INDEX IF NOT EXISTS idx_messages_conversation_sent
-ON messages(conversation_id, sent);
+ALTER TABLE conversations
+ADD CONSTRAINT fk_latest_message
+FOREIGN KEY (latest_message_id) REFERENCES messages(id);
 
--- Fetch messages by author (moderation / history)
-CREATE INDEX IF NOT EXISTS idx_messages_author
-ON messages(author_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_dm_pair
+ON conversations (LEAST(dm_user1, dm_user2), GREATEST(dm_user1, dm_user2))
+WHERE conversation_type = 'dm';
 
--- Membership lookup by user
+CREATE INDEX IF NOT EXISTS idx_messages_conversation_id_id_desc
+ON messages (conversation_id, id DESC);
+
 CREATE INDEX IF NOT EXISTS idx_membership_user
-ON membership(user_id);
+ON membership (user_id);
 
--- Conversation membership lookup by user
 CREATE INDEX IF NOT EXISTS idx_conversation_members_user
-ON conversation_members(user_id);
+ON conversation_members (user_id);
 
-/* Future features: pinned messages (dm / group), saved messages */
+CREATE INDEX IF NOT EXISTS idx_friendship_user_lookup
+ON friendship (requester_id, receiver_id);
 
--- migration tracking
+CREATE INDEX IF NOT EXISTS idx_block_user
+ON user_block (user_id);
+
 CREATE TABLE IF NOT EXISTS migrations (
   id SERIAL PRIMARY KEY,
   name TEXT UNIQUE NOT NULL,
