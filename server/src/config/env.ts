@@ -18,3 +18,14 @@ export const DB_USER: string = getEnvVar('DB_USER', 'postgres');
 export const DB_PASSWORD: string = getEnvVar('DB_PASSWORD');
 export const DB_NAME: string = getEnvVar('DB_NAME');
 export const DB_PORT: number = parseInt(getEnvVar('DB_PORT', '5432'), 10);
+
+export const PORT: number = parseInt(getEnvVar('PORT', '3000'), 10);
+
+export const CLIENT_URL: string = getEnvVar('CLIENT_URL', 'http://localhost:5173');
+
+export const ADMIN_PASSWORD: string = getEnvVar('ADMIN_PASSWORD');
+export const SECRET: string = getEnvVar('SECRET');
+export const JWT_SECRET: string = getEnvVar('JWT_SECRET');
+
+export const SUPABASE_URL: string = getEnvVar('SUPABASE_URL');
+export const SUPABASE_ANON_KEY: string = getEnvVar('SUPABASE_ANON_KEY');
