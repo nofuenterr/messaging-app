@@ -1,0 +1,2 @@
+DROP VIEW IF EXISTS membership_safe CASCADE;
+DROP VIEW IF EXISTS users_safe CASCADE;

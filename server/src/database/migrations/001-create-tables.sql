@@ -5,9 +5,9 @@ CREATE TABLE IF NOT EXISTS users (
   username VARCHAR(30) NOT NULL UNIQUE,
   pronouns VARCHAR(20),
   bio VARCHAR(190),
-  password_hash VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(60) NOT NULL,
   avatar_color TEXT NOT NULL DEFAULT '#b8aafe',
-  avatar_url VARCHAR(255) DEFAULT '/images/user/avatar/default.webp',
+  avatar_url VARCHAR(255) DEFAULT '/images/users/avatar/default.webp',
   user_role VARCHAR(10) CHECK (user_role IN ('admin','user')) NOT NULL DEFAULT 'user',
   deleted TIMESTAMPTZ,
   CHECK (TRIM(username) <> ''),
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS groups (
   group_name VARCHAR(50) NOT NULL,
   group_description TEXT,
   avatar_color TEXT NOT NULL,
-  avatar_url VARCHAR(255) DEFAULT '/images/group/avatar/default.webp',
+  avatar_url VARCHAR(255) DEFAULT '/images/groups/avatar/default.webp',
   deleted TIMESTAMPTZ,
   CHECK (TRIM(group_name) <> '')
 );
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS messages (
     (
       message_type = 'system'
       AND system_event_type IS NOT NULL
-      AND system_event_type IN ('user_join','user_leave','group_rename','user_pin')
+      AND system_event_type IN ('user_join','user_leave','user_kick','group_rename','group_create','user_pin')
       AND author_id IS NULL
     )
     OR
@@ -108,12 +108,12 @@ CREATE TABLE IF NOT EXISTS membership (
   group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   joined TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  group_nickname VARCHAR(50),
+  group_display_name VARCHAR(50),
   group_pronouns VARCHAR(20),
   membership_role VARCHAR(10) CHECK (membership_role IN ('owner','admin', 'member')) NOT NULL DEFAULT 'member',
   PRIMARY KEY (group_id, user_id),
   left_at TIMESTAMPTZ,
-  CHECK (group_nickname IS NULL OR TRIM(group_nickname) <> '')
+  CHECK (group_display_name IS NULL OR TRIM(group_display_name) <> '')
 );
 
 CREATE TABLE IF NOT EXISTS user_block (
