@@ -2,7 +2,7 @@ import fs from 'fs';
 
 import pool from '../config/database.js';
 
-const migrations = ['001-create-tables'];
+const migrations = ['001-create-tables', '002-create-views'];
 
 async function migrate() {
   try {
@@ -22,7 +22,7 @@ async function migrate() {
         continue;
       }
 
-      const sql = fs.readFileSync(`server/src/database/migrations/${name}.sql`, 'utf8');
+      const sql = fs.readFileSync(`src/database/migrations/${name}.sql`, 'utf8');
       await pool.query(sql);
 
       await pool.query('INSERT INTO migrations (name) VALUES ($1)', [name]);
