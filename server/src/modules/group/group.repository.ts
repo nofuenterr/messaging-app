@@ -1,7 +1,12 @@
 import pool from '../../config/database.js';
 
-export async function createGroup({ owner_id, group_name, group_description, avatar_color }) {
-  const { rows } = await pool.query(
+export async function createGroup(
+  { owner_id, group_name, group_description, avatar_color },
+  client?
+) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     INSERT INTO groups (
       owner_id,
@@ -67,8 +72,10 @@ export async function getGroups() {
   return rows;
 }
 
-export async function getGroup({ id }) {
-  const { rows } = await pool.query(
+export async function getGroup({ id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     SELECT
       g.id AS group_id,
@@ -124,8 +131,10 @@ export async function getUserGroups({ user_id }) {
   return rows;
 }
 
-export async function getGroupMembership({ user_id, group_id }) {
-  const { rows } = await pool.query(
+export async function getGroupMembership({ user_id, group_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     SELECT
       user_id,
@@ -145,8 +154,10 @@ export async function getGroupMembership({ user_id, group_id }) {
   return rows[0];
 }
 
-export async function getGroupMembers({ id }) {
-  const { rows } = await pool.query(
+export async function getGroupMembers({ id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     SELECT
       u.id,
@@ -210,8 +221,10 @@ export async function updateGroupProfile({
   return rows.length > 0;
 }
 
-export async function setGroupMemberAsAdmin({ group_id, user_id }) {
-  const { rows } = await pool.query(
+export async function setGroupMemberAsAdmin({ group_id, user_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     UPDATE membership
     SET membership_role = 'admin'
@@ -227,8 +240,10 @@ export async function setGroupMemberAsAdmin({ group_id, user_id }) {
   return rows.length > 0;
 }
 
-export async function setGroupAdminAsMember({ group_id, user_id }) {
-  const { rows } = await pool.query(
+export async function setGroupAdminAsMember({ group_id, user_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     UPDATE membership
     SET membership_role = 'member'
@@ -259,8 +274,10 @@ export async function deleteGroup({ id }) {
   return rows.length > 0;
 }
 
-export async function joinGroup({ group_id, user_id, membership_role = 'member' }) {
-  const { rows } = await pool.query(
+export async function joinGroup({ group_id, user_id, membership_role = 'member' }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     SELECT *
     FROM membership
@@ -276,7 +293,7 @@ export async function joinGroup({ group_id, user_id, membership_role = 'member' 
   let join_success;
 
   if (membership) {
-    const { rows } = await pool.query(
+    const { rows } = await db.query(
       `
       UPDATE membership
       SET joined = NOW(),
@@ -291,7 +308,7 @@ export async function joinGroup({ group_id, user_id, membership_role = 'member' 
 
     join_success = rows.length > 0;
   } else {
-    const { rows } = await pool.query(
+    const { rows } = await db.query(
       `
       INSERT INTO membership (
         group_id,
@@ -310,8 +327,10 @@ export async function joinGroup({ group_id, user_id, membership_role = 'member' 
   return join_success;
 }
 
-export async function leaveGroup({ group_id, user_id }) {
-  const { rows } = await pool.query(
+export async function leaveGroup({ group_id, user_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     UPDATE membership
     SET left_at = NOW()
