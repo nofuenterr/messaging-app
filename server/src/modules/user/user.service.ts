@@ -20,8 +20,8 @@ export async function getUsers() {
   return userRepo.getUsers();
 }
 
-export async function getUser({ id, current_user_id }) {
-  const user = await userRepo.getUser({ id, current_user_id });
+export async function getUser({ id, current_user_id }, client?) {
+  const user = await userRepo.getUser({ id, current_user_id }, client);
 
   if (!user) {
     throw new CustomNotFoundError('User not found');

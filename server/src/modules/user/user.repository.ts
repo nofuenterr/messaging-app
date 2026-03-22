@@ -35,8 +35,10 @@ export async function getUsers() {
   return rows;
 }
 
-export async function getUser({ id, current_user_id }) {
-  const { rows } = await pool.query(
+export async function getUser({ id, current_user_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     SELECT
       u.id,
