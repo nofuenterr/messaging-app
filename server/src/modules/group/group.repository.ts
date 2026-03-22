@@ -1,25 +1,18 @@
 import pool from '../../config/database.js';
 
-export async function createGroup({
-  owner_id,
-  group_name,
-  group_description,
-  avatar_color,
-  avatar_url,
-}) {
+export async function createGroup({ owner_id, group_name, group_description, avatar_color }) {
   const { rows } = await pool.query(
     `
     INSERT INTO groups (
       owner_id,
       group_name,
       group_description,
-      avatar_color,
-      avatar_url
+      avatar_color
     )
-    VALUES ($1, $2, $3, $4, $5)
+    VALUES ($1, $2, $3, $4)
     RETURNING id, group_name;
     `,
-    [owner_id, group_name, group_description, avatar_color, avatar_url]
+    [owner_id, group_name, group_description, avatar_color]
   );
 
   return rows[0];
@@ -46,7 +39,7 @@ export async function getGroups() {
 
     FROM groups AS g
 
-    LEFT JOIN users AS u
+    LEFT JOIN users_safe AS u
       ON g.owner_id = u.id
 
     LEFT JOIN membership AS m
@@ -55,7 +48,18 @@ export async function getGroups() {
 
     WHERE g.deleted IS NULL
 
-    GROUP BY g.id, u.id
+    GROUP BY 
+      g.id,
+      g.created,
+      g.group_name,
+      g.avatar_color,
+      g.avatar_url,
+      g.group_description,
+      u.id,
+      u.display_name,
+      u.username,
+      u.avatar_color,
+      u.avatar_url
     ORDER BY g.created DESC;
     `
   );
@@ -81,7 +85,7 @@ export async function getGroup({ id }) {
       u.avatar_url AS owner_avatar_url
 
     FROM groups AS g
-    LEFT JOIN users AS u
+    LEFT JOIN users_safe AS u
       ON g.owner_id = u.id
     WHERE g.id = $1
       AND g.deleted IS NULL
@@ -126,10 +130,10 @@ export async function getGroupMembership({ user_id, group_id }) {
     SELECT
       user_id,
       joined,
-      group_nickname,
+      group_display_name,
       group_pronouns,
       membership_role
-    FROM membership
+    FROM membership_safe
     WHERE group_id = $1
       AND user_id = $2
       AND left_at IS NULL
@@ -146,15 +150,16 @@ export async function getGroupMembers({ id }) {
     `
     SELECT
       u.id,
+      u.display_name,
       u.username,
       u.avatar_color,
       u.avatar_url,
       m.joined,
-      m.group_nickname,
+      m.group_display_name,
       m.group_pronouns,
       m.membership_role
-    FROM users AS u
-    JOIN membership AS m
+    FROM users_safe AS u
+    JOIN membership_safe AS m
       ON u.id = m.user_id
     WHERE m.group_id = $1
       AND m.left_at IS NULL
@@ -183,6 +188,62 @@ export async function updateGroup({ id, group_name, group_description, avatar_ur
   return rows.length > 0;
 }
 
+export async function updateGroupProfile({
+  group_id,
+  user_id,
+  group_display_name,
+  group_pronouns,
+}) {
+  const { rows } = await pool.query(
+    `
+    UPDATE membership
+    SET group_display_name = $3,
+        group_pronouns = $4
+    WHERE group_id = $1
+      AND user_id = $2
+      AND left_at IS NULL
+    RETURNING group_id, user_id, group_display_name, group_pronouns;
+    `,
+    [group_id, user_id, group_display_name, group_pronouns]
+  );
+
+  return rows.length > 0;
+}
+
+export async function setGroupMemberAsAdmin({ group_id, user_id }) {
+  const { rows } = await pool.query(
+    `
+    UPDATE membership
+    SET membership_role = 'admin'
+    WHERE group_id = $1
+      AND user_id = $2
+      AND membership_role = 'member'
+      AND left_at IS NULL
+    RETURNING group_id, user_id, membership_role;
+    `,
+    [group_id, user_id]
+  );
+
+  return rows.length > 0;
+}
+
+export async function setGroupAdminAsMember({ group_id, user_id }) {
+  const { rows } = await pool.query(
+    `
+    UPDATE membership
+    SET membership_role = 'member'
+    WHERE group_id = $1
+      AND user_id = $2
+      AND membership_role = 'admin'
+      AND left_at IS NULL
+    RETURNING group_id, user_id, membership_role;
+    `,
+    [group_id, user_id]
+  );
+
+  return rows.length > 0;
+}
+
 export async function deleteGroup({ id }) {
   const { rows } = await pool.query(
     `
@@ -198,70 +259,59 @@ export async function deleteGroup({ id }) {
   return rows.length > 0;
 }
 
-export async function joinGroup({ group_id, user_id }) {
-  const client = await pool.connect();
+export async function joinGroup({ group_id, user_id, membership_role = 'member' }) {
+  const { rows } = await pool.query(
+    `
+    SELECT *
+    FROM membership
+    WHERE group_id = $1
+      AND user_id = $2
+    LIMIT 1;
+    `,
+    [group_id, user_id]
+  );
 
-  try {
-    await client.query('BEGIN');
+  const membership = rows.length > 0;
 
-    const { rows } = await client.query(
+  let join_success;
+
+  if (membership) {
+    const { rows } = await pool.query(
       `
-      SELECT *
-      FROM membership
+      UPDATE membership
+      SET joined = NOW(),
+        left_at = NULL,
+        membership_role = $3
       WHERE group_id = $1
         AND user_id = $2
-      LIMIT 1;
+      RETURNING group_id, user_id;
       `,
-      [group_id, user_id]
+      [group_id, user_id, membership_role]
     );
 
-    const membership = rows.length > 0;
+    join_success = rows.length > 0;
+  } else {
+    const { rows } = await pool.query(
+      `
+      INSERT INTO membership (
+        group_id,
+        user_id,
+        membership_role
+      )
+      VALUES ($1, $2, $3)
+      RETURNING group_id, user_id;
+      `,
+      [group_id, user_id, membership_role]
+    );
 
-    let join_success;
-
-    if (membership) {
-      const { rows } = await client.query(
-        `
-        UPDATE membership
-        SET joined = NOW(),
-          left_at = NULL
-        WHERE group_id = $1
-          AND user_id = $2
-        RETURNING group_id, user_id;
-        `,
-        [group_id, user_id]
-      );
-
-      join_success = rows.length > 0;
-    } else {
-      const { rows } = await client.query(
-        `
-        INSERT INTO membership (
-          group_id,
-          user_id
-        )
-        VALUES ($1, $2)
-        RETURNING group_id, user_id;
-        `,
-        [group_id, user_id]
-      );
-
-      join_success = rows.length > 0;
-    }
-
-    await client.query('COMMIT');
-
-    return join_success;
-  } catch (err) {
-    await client.query('ROLLBACK');
-    throw err;
-  } finally {
-    client.release();
+    join_success = rows.length > 0;
   }
+
+  return join_success;
 }
 
-export async function leaveGroup({ group_id, user_id }): Promise<void> {
-  await pool.query(
+export async function leaveGroup({ group_id, user_id }) {
+  const { rows } = await pool.query(
     `
     UPDATE membership
     SET left_at = NOW()
@@ -271,4 +321,6 @@ export async function leaveGroup({ group_id, user_id }): Promise<void> {
     `,
     [group_id, user_id]
   );
+
+  return rows.length > 0;
 }
