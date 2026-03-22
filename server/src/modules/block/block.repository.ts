@@ -1,7 +1,9 @@
 import pool from '../../config/database.js';
 
-export async function addToBlockList({ user_id, blocked_user_id }) {
-  const { rows } = await pool.query(
+export async function addToBlockList({ user_id, blocked_user_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     INSERT INTO user_block (
       user_id,

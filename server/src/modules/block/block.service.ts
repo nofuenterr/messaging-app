@@ -1,7 +1,7 @@
 import * as blockRepo from './block.repository.js';
 
-export async function addToBlockList({ user_id, blocked_user_id }) {
-  const isUserBlocked = await blockRepo.addToBlockList({ user_id, blocked_user_id });
+export async function addToBlockList({ user_id, blocked_user_id }, client?) {
+  const isUserBlocked = await blockRepo.addToBlockList({ user_id, blocked_user_id }, client);
 
   if (!isUserBlocked) {
     throw new Error('User not blocked');
