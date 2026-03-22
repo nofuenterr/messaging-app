@@ -42,8 +42,10 @@ export async function getFriendship({ user_id }) {
   return rows;
 }
 
-export async function getMutualGroups({ user1_id, user2_id }) {
-  const { rows } = await pool.query(
+export async function getMutualGroups({ user1_id, user2_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     SELECT 
       g.id,
@@ -70,8 +72,10 @@ export async function getMutualGroups({ user1_id, user2_id }) {
   return rows;
 }
 
-export async function getMutualFriends({ user1_id, user2_id }) {
-  const { rows } = await pool.query(
+export async function getMutualFriends({ user1_id, user2_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     WITH 
       user1_friends AS (
@@ -120,8 +124,10 @@ export async function getMutualFriends({ user1_id, user2_id }) {
   return rows;
 }
 
-export async function removeFriendship({ requester_id, receiver_id }) {
-  const { rows } = await pool.query(
+export async function removeFriendship({ requester_id, receiver_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     DELETE FROM friendship
     WHERE (requester_id = $1 OR receiver_id = $1)

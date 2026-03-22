@@ -4,16 +4,19 @@ export async function getFriendship({ user_id }) {
   return friendshipRepo.getFriendship({ user_id });
 }
 
-export async function getMutualGroups({ user1_id, user2_id }) {
-  return friendshipRepo.getMutualGroups({ user1_id, user2_id });
+export async function getMutualGroups({ user1_id, user2_id }, client?) {
+  return friendshipRepo.getMutualGroups({ user1_id, user2_id }, client);
 }
 
-export async function getMutualFriends({ user1_id, user2_id }) {
-  return friendshipRepo.getMutualFriends({ user1_id, user2_id });
+export async function getMutualFriends({ user1_id, user2_id }, client?) {
+  return friendshipRepo.getMutualFriends({ user1_id, user2_id }, client);
 }
 
-export async function removeFriendship({ requester_id, receiver_id }) {
-  const isFriendshipRemoved = await friendshipRepo.removeFriendship({ requester_id, receiver_id });
+export async function removeFriendship({ requester_id, receiver_id }, client?) {
+  const isFriendshipRemoved = await friendshipRepo.removeFriendship(
+    { requester_id, receiver_id },
+    client
+  );
 
   if (!isFriendshipRemoved) {
     console.log("Friendship doesn't exist, so nothing to be removed");
