@@ -25,9 +25,9 @@ export async function getUsers() {
       bio,
       avatar_color,
       avatar_url,
-      user_role
-    FROM users
-    WHERE deleted IS NULL
+      user_role,
+      deleted
+    FROM users_safe
     ORDER BY created DESC;
     `
   );
@@ -61,7 +61,7 @@ export async function getUser({ id, current_user_id }) {
         ELSE NULL
       END AS request_direction
 
-    FROM users AS u
+    FROM users_safe AS u
 
     LEFT JOIN user_block AS ub
       ON ub.user_id = $2
