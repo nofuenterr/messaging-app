@@ -49,10 +49,10 @@ export async function getReports() {
 
     FROM reports AS r
 
-    LEFT JOIN users AS reporter
+    LEFT JOIN users_safe AS reporter
       ON reporter.id = r.reporter_id
 
-    LEFT JOIN users AS target_user
+    LEFT JOIN users_safe AS target_user
       ON target_user.id = r.target_user_id
 
     LEFT JOIN messages AS m
@@ -92,10 +92,10 @@ export async function getUserReports({ user_id }) {
 
     FROM reports AS r
 
-    LEFT JOIN users AS reporter
+    LEFT JOIN users_safe AS reporter
       ON reporter.id = r.reporter_id
 
-    LEFT JOIN users AS target_user
+    LEFT JOIN users_safe AS target_user
       ON target_user.id = r.target_user_id
 
     LEFT JOIN messages AS m
@@ -138,10 +138,10 @@ export async function getReport({ id }) {
 
     FROM reports AS r
 
-    LEFT JOIN users AS reporter
+    LEFT JOIN users_safe AS reporter
       ON reporter.id = r.reporter_id
 
-    LEFT JOIN users AS target_user
+    LEFT JOIN users_safe AS target_user
       ON target_user.id = r.target_user_id
 
     LEFT JOIN messages AS m
