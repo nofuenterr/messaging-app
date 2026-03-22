@@ -1,63 +1,62 @@
 import pool from '../../config/database.js';
 
-export async function createMessage({
-  author_id,
-  conversation_id,
-  reply_to_message_id,
-  message_type = 'text',
-  system_event_type,
-  content,
-}) {
-  const client = await pool.connect();
+export async function createMessage(
+  {
+    author_id,
+    conversation_id,
+    reply_to_message_id,
+    message_type = 'text',
+    system_event_type,
+    content,
+  },
+  client?
+) {
+  const db = client ?? pool;
 
-  try {
-    await client.query('BEGIN');
+  const { rows: messages } = await db.query(
+    `
+    INSERT INTO messages (
+      author_id,
+      conversation_id,
+      reply_to,
+      message_type,
+      system_event_type,
+      content 
+    )
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING id, conversation_id, author_id, sent_at, reply_to, content;
+    `,
+    [author_id, conversation_id, reply_to_message_id, message_type, system_event_type, content]
+  );
 
-    const { rows: messages } = await client.query(
-      `
-      INSERT INTO messages (
-        author_id,
-        conversation_id,
-        reply_to,
-        message_type,
-        system_event_type,
-        content
-      )
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, conversation_id, sent_at;
-      `,
-      [author_id, conversation_id, reply_to_message_id, message_type, system_event_type, content]
-    );
+  const message = messages[0];
 
-    const message = messages[0];
+  await db.query(
+    `
+    UPDATE conversations
+    SET latest_message_id = $1
+    WHERE id = $2;
+    `,
+    [message.id, message.conversation_id]
+  );
 
-    await client.query(
-      `
-      UPDATE conversations
-      SET latest_message_id = $1
-      WHERE id = $2;
-      `,
-      [message.id, message.conversation_id]
-    );
-
-    await client.query('COMMIT');
-
-    return message;
-  } catch (err) {
-    await client.query('ROLLBACK');
-    throw err;
-  } finally {
-    client.release();
-  }
+  return message;
 }
 
-export async function getConversationMessages({ conversation_id, last_message_id }) {
-  const { rows } = await pool.query(
+export async function getConversationMessages({ conversation_id, last_message_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     SELECT
-      m.id,
+      m.id AS message_id,
       m.sent_at,
-      m.content,
+
+      CASE
+        WHEN m.deleted IS NOT NULL THEN NULL
+        ELSE m.content
+      END AS content,
+
       m.message_type,
       m.system_event_type,
       m.reply_to,
@@ -65,31 +64,34 @@ export async function getConversationMessages({ conversation_id, last_message_id
       m.deleted,
 
       u.id AS author_id,
-      u.username,
       u.display_name,
+      u.username,
       u.avatar_color,
       u.avatar_url,
 
       c.id,
       c.conversation_type,
 
-      mem.group_nickname
+      CASE
+        WHEN c.conversation_type = 'group' THEN NULL
+        ELSE mem.group_display_name
+      END AS group_display_name
 
     FROM messages AS m
 
-    LEFT JOIN users AS u
+    LEFT JOIN users_safe AS u
       ON u.id = m.author_id
 
     LEFT JOIN conversations AS c
       ON c.id = m.conversation_id
 
-    LEFT JOIN membership AS mem
+    LEFT JOIN membership_safe AS mem
       ON mem.user_id = u.id
       AND mem.group_id = c.group_id
       AND mem.left_at IS NULL
 
     WHERE m.conversation_id = $1
-      AND ($2 IS NULL OR m.id < $2)
+      AND ($2::int IS NULL OR m.id < $2::int)
 
     ORDER BY m.id DESC
     LIMIT 50;
@@ -114,22 +116,22 @@ export async function getMessage({ id }) {
       m.deleted,
 
       u.id AS author_id,
-      u.username,
       u.display_name,
+      u.username,
 
       c.conversation_type,
 
-      mem.group_nickname
+      mem.group_display_name
 
     FROM messages AS m
 
-    LEFT JOIN users AS u
+    LEFT JOIN users_safe AS u
       ON u.id = m.author_id
 
     LEFT JOIN conversations AS c
       ON c.id = m.conversation_id
 
-    LEFT JOIN membership AS mem
+    LEFT JOIN membership_safe AS mem
       ON mem.user_id = u.id
       AND mem.group_id = c.group_id
       AND mem.left_at IS NULL
