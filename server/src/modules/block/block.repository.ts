@@ -47,7 +47,7 @@ export async function getBlockList({ user_id }) {
 
     FROM user_block AS ub
 
-    JOIN users AS u
+    JOIN users_safe AS u
       ON u.id = ub.blocked_user_id
 
     WHERE ub.user_id = $1
