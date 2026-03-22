@@ -1,7 +1,7 @@
 import * as noteRepo from './note.repository.js';
 
-export async function getNote({ user_id, noted_user_id }) {
-  const note = await noteRepo.getNote({ user_id, noted_user_id });
+export async function getNote({ user_id, noted_user_id }, client?) {
+  const note = await noteRepo.getNote({ user_id, noted_user_id }, client);
 
   return note;
 }

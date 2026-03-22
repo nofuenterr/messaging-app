@@ -1,7 +1,9 @@
 import pool from '../../config/database.js';
 
-export async function getNote({ user_id, noted_user_id }) {
-  const { rows } = await pool.query(
+export async function getNote({ user_id, noted_user_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     SELECT *
     FROM user_note
