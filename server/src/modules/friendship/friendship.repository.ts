@@ -25,7 +25,7 @@ export async function getFriendship({ user_id }) {
 
     FROM friendship AS f
 
-    JOIN users AS u
+    JOIN users_safe AS u
       ON u.id = CASE
         WHEN f.requester_id = $1 THEN f.receiver_id
         ELSE f.requester_id
@@ -107,7 +107,7 @@ export async function getMutualFriends({ user1_id, user2_id }) {
       u.avatar_color,
       u.avatar_url,
       u.user_role
-    FROM users AS u
+    FROM users_safe AS u
     JOIN user1_friends AS u1f
       ON u.id = u1f.friend_id
     JOIN user2_friends AS u2f
@@ -162,7 +162,7 @@ export async function sendFriendRequest({ requester_id, receiver_id }) {
         `
         UPDATE friendship
         SET friendship_status = 'pending'
-        WHERE requester_id = $1,
+        WHERE requester_id = $1
           AND receiver_id = $2
         RETURNING requester_id, receiver_id;
         `,
