@@ -29,7 +29,7 @@ export const authenticateLogin =
         sameSite: 'strict',
       });
 
-      return res.status(200).json({ message: 'Auth Passed', token }); // redirect to '/'
+      return res.status(200).json({ message: 'Auth Passed', token, user }); // redirect to '/'
     })(req, res, next);
   };
 
