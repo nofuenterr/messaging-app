@@ -10,8 +10,8 @@ const profileRouter = Router();
 // "/users"
 profileRouter.patch(
   '/me/profile',
-  validationMiddleware.validateUserProfile,
   uploadMiddleware.uploadAvatar.single('avatar_url'),
+  validationMiddleware.validateUserProfile,
   profileController.updateUserProfile
 );
 profileRouter.patch(

@@ -41,8 +41,8 @@ groupRouter.patch(
 groupRouter.get('/:id', groupController.getGroup);
 groupRouter.patch(
   '/:id',
-  validationMiddleware.validateGroup,
   uploadMiddleware.uploadAvatar.single('avatar_url'),
+  validationMiddleware.validateGroup,
   groupController.updateGroup
 );
 groupRouter.delete('/:id', groupController.deleteGroup);

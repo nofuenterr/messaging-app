@@ -7,8 +7,8 @@ import * as reportController from './report.controller.js';
 const reportRouter = Router();
 
 // "/reports"
-reportRouter.get('/', reportController.getUserReports);
-reportRouter.post('/', validationMiddleware.validateReport, reportController.createReport);
-reportRouter.get('/:id', reportController.getReport);
+reportRouter.get('/me', reportController.getUserReports);
+reportRouter.post('/me', validationMiddleware.validateReport, reportController.createReport);
+reportRouter.get('/me/:id', reportController.getReport);
 
 export default reportRouter;
