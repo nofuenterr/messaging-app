@@ -49,6 +49,7 @@ export async function getGroups() {
 
     LEFT JOIN membership AS m
       ON m.group_id = g.id
+      AND m.joined IS NOT NULL
       AND m.left_at IS NULL
 
     WHERE g.deleted IS NULL
@@ -107,22 +108,62 @@ export async function getGroup({ id }, client?) {
 export async function getUserGroups({ user_id }) {
   const { rows } = await pool.query(
     `
-    SELECT 
+    SELECT
+      g.id AS group_id,
+      g.created AS group_created,
+      g.group_name,
+      g.avatar_color AS group_avatar_color,
+      g.avatar_url AS group_avatar_url,
+      g.group_description,
+
+      u.id AS owner_id,
+      u.display_name AS owner_display_name,
+      u.username AS owner_username,
+      u.avatar_color AS owner_avatar_color,
+      u.avatar_url AS owner_avatar_url,
+
+      m.joined,
+      m.membership_role,
+      m.group_display_name,
+      m.group_pronouns,
+
+      COUNT(m_all.user_id) AS member_count
+
+    FROM groups AS g
+
+    LEFT JOIN users_safe AS u
+      ON g.owner_id = u.id
+
+    JOIN membership AS m
+      ON m.group_id = g.id
+      and m.user_id = $1
+      AND m.joined IS NOT NULL
+      AND m.left_at IS NULL
+
+    LEFT JOIN membership AS m_all
+      ON m_all.group_id = g.id
+      AND m_all.left_at IS NULL
+      AND m_all.joined IS NOT NULL
+      
+    WHERE g.deleted IS NULL
+    
+    GROUP BY 
       g.id,
       g.created,
-      g.owner_id,
       g.group_name,
-      g.group_description,
       g.avatar_color,
       g.avatar_url,
+      g.group_description,
+      u.id,
+      u.display_name,
+      u.username,
+      u.avatar_color,
+      u.avatar_url,
       m.joined,
-      m.membership_role
-    FROM groups AS g
-    JOIN membership AS m
-      ON g.id = m.group_id
-    WHERE m.user_id = $1
-      AND m.left_at IS NULL
-      AND g.deleted IS NULL
+      m.membership_role,
+      m.group_display_name,
+      m.group_pronouns
+
     ORDER BY m.joined DESC;
     `,
     [user_id]
@@ -139,13 +180,13 @@ export async function getGroupMembership({ user_id, group_id }, client?) {
     SELECT
       user_id,
       joined,
+      left_at,
       group_display_name,
       group_pronouns,
       membership_role
     FROM membership_safe
     WHERE group_id = $1
       AND user_id = $2
-      AND left_at IS NULL
     LIMIT 1;
     `,
     [group_id, user_id]
