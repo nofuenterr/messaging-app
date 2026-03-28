@@ -164,6 +164,13 @@ export async function getUserConversationsWithLatestMessage({ user_id }) {
       m.author_id,
 
       CASE
+        WHEN c.conversation_type = 'group' THEN 
+          ma.group_display_name
+        ELSE 
+          ua.display_name
+      END AS author_display_name,
+
+      CASE
         WHEN m.deleted IS NOT NULL THEN NULL
         ELSE m.content
       END AS content,
@@ -206,6 +213,12 @@ export async function getUserConversationsWithLatestMessage({ user_id }) {
         WHEN c.dm_user1 = $1 THEN c.dm_user2
         ELSE c.dm_user1
       END
+
+    LEFT JOIN users_safe ua
+      ON m.author_id = ua.id
+
+    LEFT JOIN membership_safe ma
+      ON ua.id = ma.user_id
 
     LEFT JOIN groups g
       ON g.id = c.group_id
