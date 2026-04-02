@@ -29,11 +29,11 @@ async function rollback(steps = Infinity) {
         // 2. Start transaction
         await pool.query('BEGIN');
 
-        // 3. Run rollback SQL
-        await pool.query(sql);
-
-        // 4. Remove from migrations table
+        // 3. Remove from migrations table
         await pool.query('DELETE FROM migrations WHERE name = $1', [name]);
+
+        // 4. Run rollback SQL
+        await pool.query(sql);
 
         // 5. Commit
         await pool.query('COMMIT');
