@@ -59,9 +59,17 @@ export async function getConversationMessages({ conversation_id, last_message_id
 
       m.message_type,
       m.system_event_type,
-      m.reply_to,
       m.last_edited,
       m.deleted,
+
+      rm.id AS replied_message_id,
+      CASE
+        WHEN rm.deleted IS NOT NULL THEN NULL
+        ELSE rm.content
+      END AS replied_message_content,
+      rm.deleted AS replied_message_deleted,
+      rm.last_edited AS replied_message_last_edited,
+      ru.display_name AS replied_message_author_name,
 
       u.id AS author_id,
       u.display_name,
@@ -89,6 +97,12 @@ export async function getConversationMessages({ conversation_id, last_message_id
       ON mem.user_id = u.id
       AND mem.group_id = c.group_id
       AND mem.left_at IS NULL
+
+    LEFT JOIN messages AS rm
+      ON rm.id = m.reply_to
+
+    LEFT JOIN users_safe AS ru
+      ON ru.id = rm.author_id
 
     WHERE m.conversation_id = $1
       AND ($2::int IS NULL OR m.id < $2::int)
