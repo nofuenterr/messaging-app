@@ -15,7 +15,7 @@ export async function createGroup(
       avatar_color
     )
     VALUES ($1, $2, $3, $4)
-    RETURNING id, group_name;
+    RETURNING id, group_name, group_description;
     `,
     [owner_id, group_name, group_description, avatar_color]
   );
@@ -223,8 +223,10 @@ export async function getGroupMembers({ id }, client?) {
   return rows;
 }
 
-export async function updateGroup({ id, group_name, group_description, avatar_url }) {
-  const { rows } = await pool.query(
+export async function updateGroup({ id, group_name, group_description, avatar_url }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
     `
     UPDATE groups
     SET group_name = $2,

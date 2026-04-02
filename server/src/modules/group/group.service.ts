@@ -1,4 +1,5 @@
 import pool from '../../config/database.js';
+import { uploadGroupAvatar } from '../../services/storage.service.js';
 import CustomNotFoundError from '../../utils/errors/NotFoundError.js';
 import * as conversationService from '../conversation/conversation.service.js';
 import * as messageService from '../message/message.service.js';
@@ -18,6 +19,7 @@ export async function createGroup({
   owner_name,
   group_name,
   group_description,
+  avatar_file,
   avatar_color,
 }) {
   const client = await pool.connect();
@@ -37,6 +39,24 @@ export async function createGroup({
 
     if (!group) {
       throw new Error('Group not created');
+    }
+
+    const url = avatar_file
+      ? await uploadGroupAvatar({ group_id: group.id, file: avatar_file })
+      : null;
+
+    const isAvatarCreated = await groupRepo.updateGroup(
+      {
+        id: group.id,
+        group_name: group.group_name,
+        group_description: group.group_description,
+        avatar_url: url,
+      },
+      client
+    );
+
+    if (!isAvatarCreated) {
+      throw new Error('Avatar not created');
     }
 
     const isGroupJoined = await groupRepo.joinGroup(

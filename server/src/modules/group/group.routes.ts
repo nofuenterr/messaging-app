@@ -11,7 +11,12 @@ const groupRouter = Router();
 groupRouter.get('/me', groupController.getUserGroups);
 
 groupRouter.get('/', groupController.getGroups);
-groupRouter.post('/', validationMiddleware.validateGroup, groupController.createGroup);
+groupRouter.post(
+  '/',
+  uploadMiddleware.uploadAvatar.single('avatar_url'),
+  validationMiddleware.validateGroup,
+  groupController.createGroup
+);
 
 groupRouter.post('/:id/join', groupController.joinGroup);
 groupRouter.delete('/:id/leave', groupController.leaveGroup);

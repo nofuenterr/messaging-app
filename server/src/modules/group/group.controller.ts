@@ -32,6 +32,7 @@ export async function createGroup(
       group_name: string;
       group_description: string;
       avatar_color: string;
+      avatar_url: File | string;
     }
   >,
   res: Response,
@@ -56,6 +57,7 @@ export async function createGroup(
       owner_name: req.user.display_name || req.user.username,
       group_name,
       group_description,
+      avatar_file: req.file,
       avatar_color,
     });
 
@@ -282,7 +284,7 @@ export async function updateGroup(
     {
       group_name: string;
       group_description: string;
-      avatar_url: string;
+      avatar_url: File | string;
     }
   >,
   res: Response,
