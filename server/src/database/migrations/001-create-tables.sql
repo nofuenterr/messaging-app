@@ -48,8 +48,7 @@ CREATE TABLE IF NOT EXISTS conversations (
       AND dm_user1 IS NOT NULL 
       AND dm_user2 IS NOT NULL
     )
-  ),
-  CHECK (dm_user1 IS NULL OR dm_user1 <> dm_user2)
+  )
 );
 
 CREATE TABLE IF NOT EXISTS messages (
