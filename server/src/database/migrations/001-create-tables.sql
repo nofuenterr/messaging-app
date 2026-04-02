@@ -29,24 +29,24 @@ CREATE TABLE IF NOT EXISTS groups (
 CREATE TABLE IF NOT EXISTS conversations (
   id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  conversation_type VARCHAR(10) CHECK (conversation_type IN ('dm','group')) NOT NULL,
+  conversation_type VARCHAR(10) CHECK (conversation_type IN ('direct','group')) NOT NULL,
   latest_message_id INTEGER,
   group_id INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-  dm_user1 INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  dm_user2 INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  user1_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  user2_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
   CHECK (
     (
       conversation_type = 'group' 
       AND group_id IS NOT NULL 
-      AND dm_user1 IS NULL 
-      AND dm_user2 IS NULL
+      AND user1_id IS NULL 
+      AND user2_id IS NULL
     )
     OR
     (
-      conversation_type = 'dm' 
+      conversation_type = 'direct' 
       AND group_id IS NULL 
-      AND dm_user1 IS NOT NULL 
-      AND dm_user2 IS NOT NULL
+      AND user1_id IS NOT NULL 
+      AND user2_id IS NOT NULL
     )
   )
 );
@@ -148,8 +148,8 @@ ADD CONSTRAINT fk_latest_message
 FOREIGN KEY (latest_message_id) REFERENCES messages(id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_dm_pair
-ON conversations (LEAST(dm_user1, dm_user2), GREATEST(dm_user1, dm_user2))
-WHERE conversation_type = 'dm';
+ON conversations (LEAST(user1_id, user2_id), GREATEST(user1_id, user2_id))
+WHERE conversation_type = 'direct';
 
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_id_id_desc
 ON messages (conversation_id, id DESC);

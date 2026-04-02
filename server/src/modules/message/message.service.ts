@@ -44,7 +44,7 @@ export async function createGroupMessage(
   );
 }
 
-export async function createDMMessage({
+export async function createDirectMessage({
   author_id,
   other_user_id,
   reply_to_message_id,
@@ -57,10 +57,10 @@ export async function createDMMessage({
   try {
     await client.query('BEGIN');
 
-    const conversation_id = await conversationService.getOrCreateDMConversation(
+    const conversation_id = await conversationService.getOrCreateDirectConversation(
       {
-        dm_user1: author_id,
-        dm_user2: other_user_id,
+        user1_id: author_id,
+        user2_id: other_user_id,
       },
       client
     );
@@ -118,33 +118,33 @@ export async function getGroupMessages({ group_id, last_message_id }) {
   }
 }
 
-export async function getDMMessages({ user1_id, user2_id, last_message_id }) {
+export async function getDirectMessages({ user1_id, user2_id, last_message_id }) {
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
 
-    const dmConversation = await conversationService.getDMConversation(
+    const directConversation = await conversationService.getDirectConversation(
       { user1_id, user2_id },
       client
     );
-    let dmMessages;
+    let directMessages;
 
-    if (dmConversation) {
-      dmMessages = await messageRepo.getConversationMessages(
+    if (directConversation) {
+      directMessages = await messageRepo.getConversationMessages(
         {
-          conversation_id: dmConversation.id,
+          conversation_id: directConversation.id,
           last_message_id,
         },
         client
       );
     } else {
-      dmMessages = [];
+      directMessages = [];
     }
 
     await client.query('COMMIT');
 
-    return { conversation: dmConversation, messages: dmMessages };
+    return { conversation: directConversation, messages: directMessages };
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;

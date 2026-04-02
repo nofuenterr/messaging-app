@@ -2,9 +2,9 @@ import CustomNotFoundError from '../../utils/errors/NotFoundError.js';
 
 import * as conversationRepo from './conversation.repository.js';
 
-export async function getOrCreateDMConversation({ dm_user1, dm_user2 }, client?) {
-  const conversation_id = await conversationRepo.createDMConversation(
-    { dm_user1, dm_user2 },
+export async function getOrCreateDirectConversation({ user1_id, user2_id }, client?) {
+  const conversation_id = await conversationRepo.createDirectConversation(
+    { user1_id, user2_id },
     client
   );
 
@@ -21,10 +21,13 @@ export async function createGroupConversation({ group_id }, client?) {
   return conversation_id;
 }
 
-export async function getDMConversation({ user1_id, user2_id }, client?) {
-  const dmConversation = await conversationRepo.getDMConversation({ user1_id, user2_id }, client);
+export async function getDirectConversation({ user1_id, user2_id }, client?) {
+  const directConversation = await conversationRepo.getDirectConversation(
+    { user1_id, user2_id },
+    client
+  );
 
-  return dmConversation;
+  return directConversation;
 }
 
 export async function getGroupConversation({ group_id }, client?) {

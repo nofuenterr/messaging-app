@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import * as uploadMiddleware from '../../middleware/upload.middleware.js';
+import * as uploaDirectiddleware from '../../middleware/upload.middleware.js';
 import * as validationMiddleware from '../../middleware/validation.middleware.js';
 
 import * as profileController from './profile.controller.js';
@@ -10,7 +10,7 @@ const profileRouter = Router();
 // "/users"
 profileRouter.patch(
   '/me/profile',
-  uploadMiddleware.uploadAvatar.single('avatar_url'),
+  uploaDirectiddleware.uploadAvatar.single('avatar_url'),
   validationMiddleware.validateUserProfile,
   profileController.updateUserProfile
 );
@@ -21,7 +21,7 @@ profileRouter.patch(
 );
 profileRouter.patch(
   '/me/avatar',
-  uploadMiddleware.uploadAvatar.single('avatar_url'),
+  uploaDirectiddleware.uploadAvatar.single('avatar_url'),
   profileController.updateUserAvatar
 );
 
@@ -40,18 +40,18 @@ profileRouter.delete('/:id/block', profileController.unblockUser);
 
 profileRouter.put('/:id/note', validationMiddleware.validateNote, profileController.upsertNote);
 
-profileRouter.get('/:id/messages', profileController.getDMMessages);
+profileRouter.get('/:id/messages', profileController.getDirectMessages);
 profileRouter.post(
   '/:id/messages',
   validationMiddleware.validateMessage,
-  profileController.createDMMessage
+  profileController.createDirectMessage
 );
 profileRouter.patch(
   '/:id/messages/:messageId',
   validationMiddleware.validateMessage,
-  profileController.updateDMMessage
+  profileController.updateDirectMessage
 );
-profileRouter.delete('/:id/messages/:messageId', profileController.deleteDMMessage);
+profileRouter.delete('/:id/messages/:messageId', profileController.deleteDirectMessage);
 
 profileRouter.get('/:id', profileController.getUserProfile);
 

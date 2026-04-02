@@ -90,12 +90,12 @@ async function seed() {
 
     await pool.query(
       `
-      INSERT INTO conversations (created,conversation_type,dm_user1,dm_user2)
+      INSERT INTO conversations (created,conversation_type,user1_id,user2_id)
       VALUES
-      ('2024-03-01','dm',1,2),
-      ('2024-03-02','dm',1,3),
-      ('2024-03-03','dm',4,6),
-      ('2024-03-04','dm',8,10);
+      ('2024-03-01','direct',1,2),
+      ('2024-03-02','direct',1,3),
+      ('2024-03-03','direct',4,6),
+      ('2024-03-04','direct',8,10);
       `
     );
 

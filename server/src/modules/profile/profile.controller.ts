@@ -271,13 +271,13 @@ export async function upsertNote(
   }
 }
 
-export async function getDMMessages(
+export async function getDirectMessages(
   req: ControllerRequest<{ id: number }, object, { last_message_id: number }>,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const messages = await profileService.getDMMessages({
+    const messages = await profileService.getDirectMessages({
       user1_id: req.user.id,
       user2_id: req.params.id,
       last_message_id: req.query.last_message_id,
@@ -288,7 +288,7 @@ export async function getDMMessages(
   }
 }
 
-export async function createDMMessage(
+export async function createDirectMessage(
   req: ControllerRequest<
     { id: number },
     {
@@ -315,7 +315,7 @@ export async function createDMMessage(
 
     const { content } = matchedData(req);
 
-    const message = await profileService.createDMMessage({
+    const message = await profileService.createDirectMessage({
       author_id: Number(req.user.id),
       other_user_id: Number(req.params.id),
       content,
@@ -327,7 +327,7 @@ export async function createDMMessage(
   }
 }
 
-export async function updateDMMessage(
+export async function updateDirectMessage(
   req: ControllerRequest<{ messageId: number }, { content: string }>,
   res: Response,
   next: NextFunction
@@ -346,7 +346,7 @@ export async function updateDMMessage(
 
     const { content } = matchedData(req);
 
-    await profileService.updateDMMessage({
+    await profileService.updateDirectMessage({
       id: req.params.messageId,
       author_id: req.user.id,
       content,
@@ -357,13 +357,13 @@ export async function updateDMMessage(
   }
 }
 
-export async function deleteDMMessage(
+export async function deleteDirectMessage(
   req: ControllerRequest<{ messageId: number }>,
   res: Response,
   next: NextFunction
 ) {
   try {
-    await profileService.deleteDMMessage({
+    await profileService.deleteDirectMessage({
       id: req.params.messageId,
       author_id: req.user.id,
     });

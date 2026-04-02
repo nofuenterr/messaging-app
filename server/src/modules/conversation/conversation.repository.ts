@@ -1,25 +1,25 @@
 import pool from '../../config/database.js';
 
-export async function createDMConversation({ dm_user1, dm_user2 }, client?) {
+export async function createDirectConversation({ user1_id, user2_id }, client?) {
   const db = client ?? pool;
 
   const { rows } = await db.query(
     `
     INSERT INTO conversations (
       conversation_type,
-      dm_user1,
-      dm_user2
+      user1_id,
+      user2_id
     )
-    VALUES ('dm', $1::int, $2::int)
+    VALUES ('direct', $1::int, $2::int)
     ON CONFLICT (
-      LEAST(dm_user1, dm_user2),
-      GREATEST(dm_user1, dm_user2)
+      LEAST(user1_id, user2_id),
+      GREATEST(user1_id, user2_id)
     )
-    WHERE conversation_type = 'dm'
+    WHERE conversation_type = 'direct'
     DO NOTHING
     RETURNING id;
     `,
-    [dm_user1, dm_user2]
+    [user1_id, user2_id]
   );
 
   let conversation_id;
@@ -33,7 +33,7 @@ export async function createDMConversation({ dm_user1, dm_user2 }, client?) {
       VALUES ($1, $2), ($1, $3)
       ON CONFLICT DO NOTHING;
       `,
-      [conversation_id, dm_user1, dm_user2]
+      [conversation_id, user1_id, user2_id]
     );
 
     return conversation_id;
@@ -43,11 +43,11 @@ export async function createDMConversation({ dm_user1, dm_user2 }, client?) {
     `
     SELECT id
     FROM conversations
-    WHERE conversation_type = 'dm'
-      AND LEAST(dm_user1, dm_user2) = LEAST($1::int, $2::int)
-      AND GREATEST(dm_user1, dm_user2) = GREATEST($1::int, $2::int);
+    WHERE conversation_type = 'direct'
+      AND LEAST(user1_id, user2_id) = LEAST($1::int, $2::int)
+      AND GREATEST(user1_id, user2_id) = GREATEST($1::int, $2::int);
     `,
-    [dm_user1, dm_user2]
+    [user1_id, user2_id]
   );
 
   return existing.rows[0].id;
@@ -94,7 +94,7 @@ export async function createGroupConversation({ group_id }, client?) {
   return conversation_id;
 }
 
-export async function getDMConversation({ user1_id, user2_id }, client?) {
+export async function getDirectConversation({ user1_id, user2_id }, client?) {
   const db = client ?? pool;
 
   const { rows } = await db.query(
@@ -104,14 +104,14 @@ export async function getDMConversation({ user1_id, user2_id }, client?) {
       created,
       conversation_type,
       latest_message_id,
-      dm_user1 AS current_user_id,
-      dm_user2 AS other_user_id
+      user1_id AS current_user_id,
+      user2_id AS other_user_id
     FROM conversations
-    WHERE conversation_type = 'dm'
+    WHERE conversation_type = 'direct'
     AND (
-      (dm_user1 = $1 AND dm_user2 = $2)
+      (user1_id = $1 AND user2_id = $2)
       OR
-      (dm_user1 = $2 AND dm_user2 = $1)
+      (user1_id = $2 AND user2_id = $1)
     )
     LIMIT 1;
     `,
@@ -174,7 +174,7 @@ export async function getUserConversationsWithLatestMessage({ user_id }) {
       m.deleted,
 
       CASE
-        WHEN c.conversation_type = 'dm' THEN u.id
+        WHEN c.conversation_type = 'direct' THEN u.id
         ELSE NULL
       END AS other_user_id,
 
@@ -206,8 +206,8 @@ export async function getUserConversationsWithLatestMessage({ user_id }) {
 
     LEFT JOIN users_safe u
       ON u.id = CASE
-        WHEN c.dm_user1 = $1 THEN c.dm_user2
-        ELSE c.dm_user1
+        WHEN c.user1_id = $1 THEN c.user2_id
+        ELSE c.user1_id
       END
 
     LEFT JOIN users_safe ua

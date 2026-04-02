@@ -74,11 +74,11 @@ export async function upsertNote({ user_id, noted_user_id, content }) {
   return noteService.upsertNote({ user_id, noted_user_id, content });
 }
 
-export async function getDMMessages({ user1_id, user2_id, last_message_id }) {
-  return messageService.getDMMessages({ user1_id, user2_id, last_message_id });
+export async function getDirectMessages({ user1_id, user2_id, last_message_id }) {
+  return messageService.getDirectMessages({ user1_id, user2_id, last_message_id });
 }
 
-export async function createDMMessage({
+export async function createDirectMessage({
   author_id,
   other_user_id,
   reply_to_message_id,
@@ -86,7 +86,7 @@ export async function createDMMessage({
   system_event_type,
   content,
 }) {
-  return messageService.createDMMessage({
+  return messageService.createDirectMessage({
     author_id,
     other_user_id,
     reply_to_message_id,
@@ -96,11 +96,11 @@ export async function createDMMessage({
   });
 }
 
-export async function updateDMMessage({ id, author_id, content }) {
+export async function updateDirectMessage({ id, author_id, content }) {
   await messageService.updateMessage({ id, author_id, content });
 }
 
-export async function deleteDMMessage({ id, author_id }) {
+export async function deleteDirectMessage({ id, author_id }) {
   await messageService.deleteMessage({ id, author_id });
 }
 
