@@ -29,13 +29,9 @@ export async function createDMConversation({ dm_user1, dm_user2 }, client?) {
 
     await db.query(
       `
-      INSERT INTO conversation_members (
-        conversation_id, 
-        user_id
-      )
-      VALUES 
-        ($1, $2),
-        ($1, $3);
+      INSERT INTO conversation_members (conversation_id, user_id)
+      VALUES ($1, $2), ($1, $3)
+      ON CONFLICT DO NOTHING;
       `,
       [conversation_id, dm_user1, dm_user2]
     );
@@ -219,6 +215,7 @@ export async function getUserConversationsWithLatestMessage({ user_id }) {
 
     LEFT JOIN membership_safe ma
       ON ua.id = ma.user_id
+      AND ma.group_id = c.group_id
 
     LEFT JOIN groups g
       ON g.id = c.group_id
