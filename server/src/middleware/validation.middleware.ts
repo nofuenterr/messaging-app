@@ -4,24 +4,27 @@ export const validateMessage = [
   body('content')
     .trim()
     .isLength({ min: 1, max: 255 })
+    .withMessage(`Message content must be between 1 and 255 characters`)
     .isString()
-    .withMessage(`Message content must be between 1 and 255 characters`),
+    .withMessage(`Must be a string`),
 ];
 
 export const validateReport = [
   body('reason')
     .trim()
     .isLength({ min: 1, max: 255 })
+    .withMessage(`Report reason must be between 1 and 255 characters`)
     .isString()
-    .withMessage(`Report reason must be between 1 and 255 characters`),
+    .withMessage(`Must be a string`),
 ];
 
 export const validateNote = [
   body('content')
     .trim()
     .isLength({ min: 1, max: 255 })
+    .withMessage(`Must must be between 1 and 255 characters`)
     .isString()
-    .withMessage(`Note content must be between 1 and 255 characters`),
+    .withMessage(`Must be a string`),
 ];
 
 export const validateUserProfile = [
@@ -29,49 +32,70 @@ export const validateUserProfile = [
     .optional({ values: 'falsy' })
     .trim()
     .isLength({ min: 1, max: 50 })
-    .withMessage(`User display name must be between 1 and 50 characters`)
-    .isString(),
+    .withMessage(`Must must be between 1 and 50 characters`)
+    .isString()
+    .withMessage(`Must be a string`),
   body('pronouns')
     .optional({ values: 'falsy' })
     .trim()
     .isLength({ min: 1, max: 20 })
-    .withMessage(`User pronouns must be between 1 and 20 characters`)
-    .isString(),
+    .withMessage(`Must must be between 1 and 20 characters`)
+    .isString()
+    .withMessage(`Must be a string`),
   body('bio')
     .optional({ values: 'falsy' })
     .trim()
     .isLength({ min: 1, max: 190 })
-    .withMessage(`User bio must be between 1 and 190 characters`)
-    .isString(),
+    .withMessage(`Must must be between 1 and 190 characters`)
+    .isString()
+    .withMessage(`Must be a string`),
 ];
 
 export const validateUsername = [
   body('username')
     .trim()
     .isLength({ min: 1, max: 30 })
+    .withMessage(`Must must be between 1 and 30 characters`)
     .isString()
-    .withMessage(`Username must be between 1 and 30 characters`),
+    .withMessage(`Must be a string`),
 ];
 
-export const validateGroup = [
+export const validateCreateGroup = [
   body('group_name')
-    .optional({ values: 'falsy' })
     .trim()
     .isLength({ min: 1, max: 50 })
+    .withMessage(`Must must be between 1 and 50 characters`)
     .isString()
-    .withMessage(`Group name must be between 1 and 50 characters`),
+    .withMessage(`Must be a string`),
   body('group_description')
     .optional({ values: 'falsy' })
     .trim()
     .isLength({ min: 1, max: 190 })
+    .withMessage(`Must must be between 1 and 190 characters`)
     .isString()
-    .withMessage(`Group description must be between 1 and 190 characters`),
+    .withMessage(`Must be a string`),
   body('avatar_color')
-    .optional({ values: 'falsy' })
     .trim()
     .isLength({ min: 1, max: 30 })
+    .withMessage(`Must must be between 1 and 30 characters`)
     .isString()
-    .withMessage(`Avatar color must be between 1 and 30 characters`),
+    .withMessage(`Must be a string`),
+];
+
+export const validateUpdateGroup = [
+  body('group_name')
+    .trim()
+    .isLength({ min: 1, max: 50 })
+    .withMessage(`Must must be between 1 and 50 characters`)
+    .isString()
+    .withMessage(`Must be a string`),
+  body('group_description')
+    .optional({ values: 'falsy' })
+    .trim()
+    .isLength({ min: 1, max: 190 })
+    .withMessage(`Must must be between 1 and 190 characters`)
+    .isString()
+    .withMessage(`Must be a string`),
 ];
 
 export const validateGroupProfile = [
@@ -79,32 +103,39 @@ export const validateGroupProfile = [
     .optional({ values: 'falsy' })
     .trim()
     .isLength({ min: 1, max: 50 })
+    .withMessage(`Must must be between 1 and 50 characters`)
     .isString()
-    .withMessage(`Group display name must be between 1 and 50 characters`),
+    .withMessage(`Must be a string`),
   body('group_pronouns')
     .optional({ values: 'falsy' })
     .trim()
     .isLength({ min: 1, max: 20 })
+    .withMessage(`Must must be between 1 and 20 characters`)
     .isString()
-    .withMessage(`Group pronouns must be between 1 and 20 characters`),
+    .withMessage(`Must be a string`),
 ];
 
 export const validateUser = [
   body('username')
     .trim()
     .isLength({ min: 1, max: 30 })
+    .withMessage(`Must must be between 1 and 30 characters`)
     .isString()
-    .withMessage(`Username must be between 1 and 30 characters`),
+    .withMessage(`Must be a string`),
   body('password')
     .trim()
+    .isLength({ min: 8 })
+    .withMessage(`Must must be at least 8 characters`)
     .isStrongPassword()
-    .isString()
     .withMessage(
-      'Password must be at least 8 characters long and include at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol'
-    ),
+      `Password must be at least 8 characters long containing at least 1 uppercase, 1 lowercase, 1 number, and 1 special character`
+    )
+    .isString()
+    .withMessage(`Must be a string`),
   body('avatar_color')
     .trim()
     .isLength({ min: 1, max: 30 })
+    .withMessage(`Must must be between 1 and 30 characters`)
     .isString()
-    .withMessage(`Avatar color must be between 1 and 30 characters`),
+    .withMessage(`Must be a string`),
 ];
