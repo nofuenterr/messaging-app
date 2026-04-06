@@ -1,4 +1,4 @@
-import CustomNotFoundError from '../../utils/errors/NotFoundError.js';
+import { NotFoundError } from '../../utils/errors/customErrors.js';
 
 import * as reportRepo from './report.repository.js';
 
@@ -36,7 +36,7 @@ export async function getReport({ id }) {
   const report = await reportRepo.getReport({ id });
 
   if (!report) {
-    throw new CustomNotFoundError('Report not found');
+    throw new NotFoundError('Report not found');
   }
 
   return report;

@@ -1,4 +1,4 @@
-import CustomNotFoundError from '../../utils/errors/NotFoundError.js';
+import { NotFoundError } from '../../utils/errors/customErrors.js';
 
 import * as conversationRepo from './conversation.repository.js';
 
@@ -34,7 +34,7 @@ export async function getGroupConversation({ group_id }, client?) {
   const groupConversation = await conversationRepo.getGroupConversation({ group_id }, client);
 
   if (!groupConversation) {
-    throw new CustomNotFoundError('Group conversation not found');
+    throw new NotFoundError('Group conversation not found');
   }
 
   return groupConversation;

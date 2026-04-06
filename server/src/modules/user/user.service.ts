@@ -1,4 +1,4 @@
-import CustomNotFoundError from '../../utils/errors/NotFoundError.js';
+import { NotFoundError } from '../../utils/errors/customErrors.js';
 
 import * as userRepo from './user.repository.js';
 
@@ -24,7 +24,7 @@ export async function getUser({ id, current_user_id }, client?) {
   const user = await userRepo.getUser({ id, current_user_id }, client);
 
   if (!user) {
-    throw new CustomNotFoundError('User not found');
+    throw new NotFoundError('User not found');
   }
 
   return user;

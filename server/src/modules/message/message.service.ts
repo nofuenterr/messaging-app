@@ -1,5 +1,5 @@
 import pool from '../../config/database.js';
-import CustomNotFoundError from '../../utils/errors/NotFoundError.js';
+import { NotFoundError } from '../../utils/errors/customErrors.js';
 import * as conversationService from '../conversation/conversation.service.js';
 
 import * as messageRepo from './message.repository.js';
@@ -157,7 +157,7 @@ export async function getMessage({ id }) {
   const message = await messageRepo.getMessage({ id });
 
   if (!message) {
-    throw new CustomNotFoundError('Message not found');
+    throw new NotFoundError('Message not found');
   }
 
   return message;

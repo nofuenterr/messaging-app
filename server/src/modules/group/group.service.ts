@@ -1,6 +1,6 @@
 import pool from '../../config/database.js';
 import { uploadGroupAvatar } from '../../services/storage.service.js';
-import CustomNotFoundError from '../../utils/errors/NotFoundError.js';
+import { NotFoundError } from '../../utils/errors/customErrors.js';
 import * as conversationService from '../conversation/conversation.service.js';
 import * as messageService from '../message/message.service.js';
 
@@ -440,7 +440,7 @@ export async function getGroup({ group_id, user_id }) {
     const group = await groupRepo.getGroup({ id: group_id }, client);
 
     if (!group) {
-      throw new CustomNotFoundError('Group not found');
+      throw new NotFoundError('Group not found');
     }
 
     const groupMembers = await groupRepo.getGroupMembers({ id: group_id }, client);
