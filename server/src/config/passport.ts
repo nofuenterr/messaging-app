@@ -1,18 +1,16 @@
 import { compare } from 'bcryptjs';
+import type { Request } from 'express';
 import passport from 'passport';
-import { Strategy as JwtStrategy } from 'passport-jwt';
+import { Strategy as JwtStrategy, type StrategyOptionsWithoutRequest } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
+import type { Pool } from 'pg';
 
-export default (pool) => {
-  // EXTRACT JWT FROM COOKIE
-  const cookieExtractor = (req) => {
-    let token = null;
-
-    if (req && req.cookies) {
-      token = req.cookies.jwt;
+export default (pool: Pool) => {
+  const cookieExtractor = (req: Request): string | null => {
+    if (req?.cookies) {
+      return req.cookies.jwt ?? null;
     }
-
-    return token;
+    return null;
   };
 
   passport.use(
@@ -24,15 +22,10 @@ export default (pool) => {
         );
         const user = rows[0];
 
-        if (!user) {
-          return done(null, false, { message: 'Incorrect username' });
-        }
+        if (!user) return done(null, false, { message: 'Incorrect username' });
 
         const match = await compare(password, user.password_hash);
-
-        if (!match) {
-          return done(null, false, { message: 'Incorrect password' });
-        }
+        if (!match) return done(null, false, { message: 'Incorrect password' });
 
         return done(null, user);
       } catch (err) {
@@ -41,31 +34,25 @@ export default (pool) => {
     })
   );
 
+  const jwtOptions: StrategyOptionsWithoutRequest = {
+    jwtFromRequest: cookieExtractor,
+    secretOrKey: process.env.JWT_SECRET as string,
+  };
+
   passport.use(
-    new JwtStrategy(
-      {
-        jwtFromRequest: cookieExtractor,
-        secretOrKey: process.env.JWT_SECRET,
-      },
-      async (payload, done) => {
-        try {
-          const { rows } = await pool.query(
-            'SELECT * FROM users WHERE id = $1 AND deleted IS NULL',
-            [payload.id]
-          );
+    new JwtStrategy(jwtOptions, async (payload, done) => {
+      try {
+        const { rows } = await pool.query('SELECT * FROM users WHERE id = $1 AND deleted IS NULL', [
+          payload.id,
+        ]);
+        const user = rows[0];
 
-          const user = rows[0];
-
-          if (!user) {
-            return done(null, false);
-          }
-
-          return done(null, user);
-        } catch (err) {
-          return done(err, false);
-        }
+        if (!user) return done(null, false);
+        return done(null, user);
+      } catch (err) {
+        return done(err, false);
       }
-    )
+    })
   );
 
   return passport;
