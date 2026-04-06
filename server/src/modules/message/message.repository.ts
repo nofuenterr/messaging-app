@@ -69,22 +69,33 @@ export async function getConversationMessages({ conversation_id, last_message_id
       END AS replied_message_content,
       rm.deleted AS replied_message_deleted,
       rm.last_edited AS replied_message_last_edited,
-      ru.display_name AS replied_message_author_name,
+
+      CASE
+        WHEN c.conversation_type = 'group' THEN rmem.group_display_name
+        ELSE ru.display_name
+      END AS replied_message_author_name,
+
+      ru.id AS replied_message_author_id,
 
       u.id AS author_id,
-      u.display_name,
+
+      CASE
+        WHEN c.conversation_type = 'group' THEN mem.group_display_name
+        ELSE u.display_name
+      END AS display_name,
+
+      CASE
+        WHEN c.conversation_type = 'group' THEN mem.group_pronouns
+        ELSE u.pronouns
+      END AS pronouns,
+
       u.username,
       u.avatar_color,
       u.avatar_url,
       u.banner_url,
 
       c.id,
-      c.conversation_type,
-
-      CASE
-        WHEN c.conversation_type = 'group' THEN NULL
-        ELSE mem.group_display_name
-      END AS group_display_name
+      c.conversation_type
 
     FROM messages AS m
 
@@ -104,6 +115,11 @@ export async function getConversationMessages({ conversation_id, last_message_id
 
     LEFT JOIN users_safe AS ru
       ON ru.id = rm.author_id
+
+    LEFT JOIN membership_safe AS rmem
+      ON rmem.user_id = ru.id
+      AND rmem.group_id = c.group_id
+      AND rmem.left_at IS NULL
 
     WHERE m.conversation_id = $1
       AND ($2::int IS NULL OR m.id < $2::int)
