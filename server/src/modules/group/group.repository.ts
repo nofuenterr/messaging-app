@@ -182,6 +182,77 @@ export async function getUserGroups({ user_id }) {
   return rows;
 }
 
+export async function getUserGroupProfile({ id, current_user_id, group_id }, client?) {
+  const db = client ?? pool;
+
+  const { rows } = await db.query(
+    `
+    SELECT
+      u.id,
+      u.created,
+      m.joined,
+      m.left_at,
+      m.membership_role,
+      m.group_display_name AS display_name,
+      m.group_pronouns AS pronouns,
+      u.username,
+      u.bio,
+      u.avatar_color,
+      u.avatar_url,
+      u.banner_url,
+      u.deleted,
+
+      CASE
+        WHEN ub.user_id IS NOT NULL THEN TRUE
+        ELSE FALSE
+      END AS is_blocked,
+
+      CASE
+        WHEN ubc.user_id IS NOT NULL THEN TRUE
+        ELSE FALSE
+      END AS was_blocked,
+
+      f.friendship_status,
+      CASE
+        WHEN f.requester_id = $2 THEN 'outgoing'
+        WHEN f.receiver_id = $2 THEN 'incoming'
+        ELSE NULL
+      END AS request_direction
+
+    FROM users_safe AS u
+
+    LEFT JOIN user_block AS ub
+      ON ub.user_id = $2
+      AND ub.blocked_user_id = u.id
+
+    LEFT JOIN user_block AS ubc
+      ON ubc.user_id = u.id
+      AND ubc.blocked_user_id = $2
+
+    LEFT JOIN LATERAL (
+      SELECT *
+      FROM friendship
+      WHERE (requester_id = u.id AND receiver_id = $2)
+        OR (receiver_id = u.id AND requester_id = $2)
+      ORDER BY created DESC
+      LIMIT 1
+    ) AS f ON TRUE
+
+    JOIN membership_safe AS m
+      ON m.group_id = $3
+      and m.user_id = $1
+      AND m.joined IS NOT NULL
+      AND m.left_at IS NULL
+
+    WHERE u.id = $1
+    LIMIT 1;
+    `,
+    [id, current_user_id, group_id]
+  );
+
+  return rows[0];
+}
+
 export async function getGroupMembership({ user_id, group_id }, client?) {
   const db = client ?? pool;
 

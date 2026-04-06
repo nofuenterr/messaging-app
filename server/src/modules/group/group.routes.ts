@@ -43,6 +43,7 @@ groupRouter.patch(
   validationMiddleware.validateGroupProfile,
   groupController.updateGroupProfile
 );
+groupRouter.get('/:id/:userId/profile', groupController.getUserGroupProfile);
 
 groupRouter.get('/:id', groupController.getGroup);
 groupRouter.patch(

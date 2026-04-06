@@ -2,7 +2,9 @@ import pool from '../../config/database.js';
 import { uploadGroupAvatar, uploadGroupBanner } from '../../services/storage.service.js';
 import { NotFoundError } from '../../utils/errors/customErrors.js';
 import * as conversationService from '../conversation/conversation.service.js';
+import * as friendshipService from '../friendship/friendship.service.js';
 import * as messageService from '../message/message.service.js';
+import * as noteService from '../note/note.service.js';
 
 import * as groupRepo from './group.repository.js';
 
@@ -530,5 +532,41 @@ export async function deleteGroup({ id }) {
 
   if (!isGroupDeleted) {
     throw new Error('Group not deleted');
+  }
+}
+
+export async function getUserGroupProfile({ id, current_user_id, group_id }) {
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const user = await groupRepo.getUserGroupProfile({ id, current_user_id, group_id }, client);
+
+    const note = await noteService.getNote({ user_id: current_user_id, noted_user_id: id }, client);
+
+    const mutualGroups = await friendshipService.getMutualGroups(
+      {
+        user1_id: current_user_id,
+        user2_id: id,
+      },
+      client
+    );
+
+    const mutualFriends = await friendshipService.getMutualFriends(
+      {
+        user1_id: current_user_id,
+        user2_id: id,
+      },
+      client
+    );
+
+    await client.query('COMMIT');
+    return { user, note, mutualGroups, mutualFriends };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
   }
 }

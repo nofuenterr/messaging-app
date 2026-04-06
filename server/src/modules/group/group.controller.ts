@@ -388,3 +388,20 @@ export async function deleteGroup(
     next(err);
   }
 }
+
+export async function getUserGroupProfile(
+  req: ControllerRequest<{ id: number; userId: number }>,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const profile = await groupService.getUserGroupProfile({
+      id: req.params.userId,
+      current_user_id: req.user.id,
+      group_id: req.params.id,
+    });
+    res.status(200).json(profile);
+  } catch (err) {
+    next(err);
+  }
+}
