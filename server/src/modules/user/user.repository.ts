@@ -120,21 +120,6 @@ export async function updateUsername({ id, username }) {
   return rows.length > 0;
 }
 
-export async function updateUserAvatar({ id, avatar_url }) {
-  const { rows } = await pool.query(
-    `
-    UPDATE users
-    SET avatar_url = $2
-    WHERE id = $1
-      AND deleted IS NULL
-    RETURNING id;
-    `,
-    [id, avatar_url]
-  );
-
-  return rows.length > 0;
-}
-
 export async function deleteUser({ id }) {
   const { rows } = await pool.query(
     `

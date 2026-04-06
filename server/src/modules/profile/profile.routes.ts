@@ -19,11 +19,6 @@ profileRouter.patch(
   validationMiddleware.validateUsername,
   profileController.updateUsername
 );
-profileRouter.patch(
-  '/me/avatar',
-  uploaDirectiddleware.uploadAvatar.single('avatar_url'),
-  profileController.updateUserAvatar
-);
 
 profileRouter.get('/me/friends', profileController.getFriendship);
 profileRouter.get('/me/blocks', profileController.getBlockList);

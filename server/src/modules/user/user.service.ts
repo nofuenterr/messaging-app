@@ -52,14 +52,6 @@ export async function updateUsername({ id, username }) {
   }
 }
 
-export async function updateUserAvatar({ id, avatar_url }) {
-  const isUserAvatarUpdated = await userRepo.updateUserAvatar({ id, avatar_url });
-
-  if (!isUserAvatarUpdated) {
-    throw new Error('User avatar not updated');
-  }
-}
-
 export async function deleteUser({ id }) {
   const isUserDeleted = await userRepo.deleteUser({ id });
 

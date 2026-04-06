@@ -13,10 +13,6 @@ export async function updateUsername({ id, username }) {
   await userService.updateUsername({ id, username });
 }
 
-export async function updateUserAvatar({ id, avatar_url }) {
-  await userService.updateUserAvatar({ id, avatar_url });
-}
-
 export async function getFriendship({ user_id }) {
   return friendshipService.getFriendship({ user_id });
 }

@@ -80,26 +80,6 @@ export async function updateUsername(
   }
 }
 
-export async function updateUserAvatar(
-  req: ControllerRequest<object, { avatar_url: string }>,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const url = req.file
-      ? await uploadUserAvatar({ user_id: req.user.id, file: req.file })
-      : req.body.avatar_url;
-
-    await profileService.updateUserAvatar({
-      id: req.user.id,
-      avatar_url: url,
-    });
-    res.status(204).end();
-  } catch (err) {
-    next(err);
-  }
-}
-
 export async function getFriendship(req: ControllerRequest, res: Response, next: NextFunction) {
   try {
     const friendship = await profileService.getFriendship({
@@ -137,6 +117,7 @@ export async function getCurrentUserProfile(
       bio: req.user.bio,
       avatar_color: req.user.avatar_color,
       avatar_url: req.user.avatar_url,
+      banner_url: req.user?.banner_url,
       deleted: req.user.deleted,
       user_role: req.user.user_role,
     });
