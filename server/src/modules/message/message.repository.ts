@@ -76,6 +76,7 @@ export async function getConversationMessages({ conversation_id, last_message_id
       u.username,
       u.avatar_color,
       u.avatar_url,
+      u.banner_url,
 
       c.id,
       c.conversation_type,

@@ -191,6 +191,11 @@ export async function getUserConversationsWithLatestMessage({ user_id }) {
       END AS display_avatar_url,
 
       CASE
+        WHEN c.conversation_type = 'group' THEN g.banner_url
+        ELSE u.banner_url
+      END AS display_banner_url,
+
+      CASE
         WHEN c.conversation_type = 'group' THEN g.avatar_color
         ELSE u.avatar_color
       END AS display_avatar_color

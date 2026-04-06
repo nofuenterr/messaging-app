@@ -35,17 +35,20 @@ export async function getReports() {
       reporter.display_name AS reporter_display_name,
       reporter.avatar_color AS reporter_avatar_color,
       reporter.avatar_url AS reporter_avatar_url,
+      reporter.banner_url AS reporter_banner_url,
 
       target_user.username AS target_username,
       target_user.display_name AS target_display_name,
       target_user.avatar_color AS target_avatar_color,
       target_user.avatar_url AS target_avatar_url,
+      target_user.banner_url AS target_banner_url,
 
       m.content AS target_message_content,
 
       g.group_name AS target_group_name,
       g.avatar_color AS target_group_avatar_color,
-      g.avatar_url AS target_group_avatar_url
+      g.avatar_url AS target_group_avatar_url,
+      g.banner_url AS target_group_banner_url
 
     FROM reports AS r
 
@@ -78,17 +81,20 @@ export async function getUserReports({ user_id }) {
       reporter.display_name AS reporter_display_name,
       reporter.avatar_color AS reporter_avatar_color,
       reporter.avatar_url AS reporter_avatar_url,
+      reporter.banner_url AS reporter_banner_url,
 
       target_user.username AS target_username,
       target_user.display_name AS target_display_name,
       target_user.avatar_color AS target_avatar_color,
       target_user.avatar_url AS target_avatar_url,
+      target_user.banner_url AS target_banner_url,
 
       m.content AS target_message_content,
 
       g.group_name AS target_group_name,
       g.avatar_color AS target_group_avatar_color,
-      g.avatar_url AS target_group_avatar_url
+      g.avatar_url AS target_group_avatar_url,
+      g.banner_url AS target_group_banner_url
 
     FROM reports AS r
 
@@ -124,17 +130,20 @@ export async function getReport({ id }) {
       reporter.display_name AS reporter_display_name,
       reporter.avatar_color AS reporter_avatar_color,
       reporter.avatar_url AS reporter_avatar_url,
+      reporter.banner_url AS reporter_banner_url,
 
       target_user.username AS target_username,
       target_user.display_name AS target_display_name,
       target_user.avatar_color AS target_avatar_color,
       target_user.avatar_url AS target_avatar_url,
+      target_user.banner_url AS target_banner_url,
 
       m.content AS target_message_content,
 
       g.group_name AS target_group_name,
       g.avatar_color AS target_group_avatar_color,
-      g.avatar_url AS target_group_avatar_url
+      g.avatar_url AS target_group_avatar_url,
+      g.banner_url AS target_group_banner_url
 
     FROM reports AS r
 

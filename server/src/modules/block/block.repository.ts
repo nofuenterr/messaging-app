@@ -45,6 +45,7 @@ export async function getBlockList({ user_id }) {
       u.username,
       u.avatar_color,
       u.avatar_url,
+      u.banner_url,
       ub.blocked
 
     FROM user_block AS ub

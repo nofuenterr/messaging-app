@@ -25,6 +25,7 @@ export async function getUsers() {
       bio,
       avatar_color,
       avatar_url,
+      banner_url,
       user_role,
       deleted
     FROM users_safe
@@ -49,6 +50,7 @@ export async function getUser({ id, current_user_id }, client?) {
       u.bio,
       u.avatar_color,
       u.avatar_url,
+      u.banner_url,
       u.deleted,
 
       CASE
@@ -87,19 +89,27 @@ export async function getUser({ id, current_user_id }, client?) {
   return rows[0];
 }
 
-export async function updateUserProfile({ id, display_name, pronouns, avatar_url, bio }) {
+export async function updateUserProfile({
+  id,
+  display_name,
+  pronouns,
+  avatar_url,
+  banner_url,
+  bio,
+}) {
   const { rows } = await pool.query(
     `
     UPDATE users
     SET display_name = COALESCE($2, display_name),
         pronouns = COALESCE($3, pronouns),
         avatar_url = COALESCE($4, avatar_url),
-        bio = COALESCE($5, bio)
+        banner_url = COALESCE($5, banner_url),
+        bio = COALESCE($6, bio)
     WHERE id = $1
       AND deleted IS NULL
     RETURNING id;
     `,
-    [id, display_name, pronouns, avatar_url, bio]
+    [id, display_name, pronouns, avatar_url, banner_url, bio]
   );
 
   return rows.length > 0;

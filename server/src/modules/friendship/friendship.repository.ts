@@ -9,6 +9,7 @@ export async function getFriendship({ user_id }) {
       u.username,
       u.avatar_color,
       u.avatar_url,
+      u.banner_url,
 
       CASE
         WHEN f.requester_id = $1 THEN f.receiver_id
@@ -53,7 +54,8 @@ export async function getMutualGroups({ user1_id, user2_id }, client?) {
       g.group_name,
       g.group_description,
       g.avatar_color,
-      g.avatar_url
+      g.avatar_url,
+      g.banner_url
     FROM groups AS g
     JOIN membership AS m1
       ON g.id = m1.group_id
@@ -110,6 +112,7 @@ export async function getMutualFriends({ user1_id, user2_id }, client?) {
       u.bio,
       u.avatar_color,
       u.avatar_url,
+      u.banner_url,
       u.user_role
     FROM users_safe AS u
     JOIN user1_friends AS u1f

@@ -32,6 +32,7 @@ export async function getGroups() {
       g.group_name,
       g.avatar_color AS group_avatar_color,
       g.avatar_url AS group_avatar_url,
+      g.banner_url AS group_banner_url,
       g.group_description,
 
       u.id AS owner_id,
@@ -39,6 +40,7 @@ export async function getGroups() {
       u.username AS owner_username,
       u.avatar_color AS owner_avatar_color,
       u.avatar_url AS owner_avatar_url,
+      u.banner_url AS owner_banner_url,
 
       COUNT(m.user_id) AS member_count
 
@@ -60,12 +62,14 @@ export async function getGroups() {
       g.group_name,
       g.avatar_color,
       g.avatar_url,
+      g.banner_url,
       g.group_description,
       u.id,
       u.display_name,
       u.username,
       u.avatar_color,
-      u.avatar_url
+      u.avatar_url,
+      u.banner_url
     ORDER BY g.created DESC;
     `
   );
@@ -85,12 +89,14 @@ export async function getGroup({ id }, client?) {
       g.group_description,
       g.avatar_color AS group_avatar_color,
       g.avatar_url AS group_avatar_url,
+      g.banner_url AS group_banner_url,
 
       u.id AS owner_id,
       u.display_name AS owner_display_name,
       u.username AS owner_username,
       u.avatar_color AS owner_avatar_color,
-      u.avatar_url AS owner_avatar_url
+      u.avatar_url AS owner_avatar_url,
+      u.banner_url AS owner_banner_url
 
     FROM groups AS g
     LEFT JOIN users_safe AS u
@@ -114,6 +120,7 @@ export async function getUserGroups({ user_id }) {
       g.group_name,
       g.avatar_color AS group_avatar_color,
       g.avatar_url AS group_avatar_url,
+      g.banner_url AS group_banner_url,
       g.group_description,
 
       u.id AS owner_id,
@@ -121,6 +128,7 @@ export async function getUserGroups({ user_id }) {
       u.username AS owner_username,
       u.avatar_color AS owner_avatar_color,
       u.avatar_url AS owner_avatar_url,
+      u.banner_url AS owner_banner_url,
 
       m.joined,
       m.membership_role,
@@ -153,12 +161,14 @@ export async function getUserGroups({ user_id }) {
       g.group_name,
       g.avatar_color,
       g.avatar_url,
+      g.banner_url,
       g.group_description,
       u.id,
       u.display_name,
       u.username,
       u.avatar_color,
       u.avatar_url,
+      u.banner_url,
       m.joined,
       m.membership_role,
       m.group_display_name,
@@ -206,6 +216,7 @@ export async function getGroupMembers({ id }, client?) {
       u.username,
       u.avatar_color,
       u.avatar_url,
+      u.banner_url,
       m.joined,
       m.group_display_name,
       m.group_pronouns,
@@ -223,7 +234,10 @@ export async function getGroupMembers({ id }, client?) {
   return rows;
 }
 
-export async function updateGroup({ id, group_name, group_description, avatar_url }, client?) {
+export async function updateGroup(
+  { id, group_name, group_description, avatar_url, banner_url },
+  client?
+) {
   const db = client ?? pool;
 
   const { rows } = await db.query(
@@ -231,12 +245,13 @@ export async function updateGroup({ id, group_name, group_description, avatar_ur
     UPDATE groups
     SET group_name = $2,
         group_description = $3,
-        avatar_url = $4
+        avatar_url = $4,
+        banner_url = $5
     WHERE id = $1
       AND deleted IS NULL
     RETURNING id;
     `,
-    [id, group_name, group_description, avatar_url]
+    [id, group_name, group_description, avatar_url, banner_url]
   );
 
   return rows.length > 0;
