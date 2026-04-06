@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import * as uploaDirectiddleware from '../../middleware/upload.middleware.js';
+import * as uploadMiddleware from '../../middleware/upload.middleware.js';
 import * as validationMiddleware from '../../middleware/validation.middleware.js';
 
 import * as profileController from './profile.controller.js';
@@ -10,7 +10,8 @@ const profileRouter = Router();
 // "/users"
 profileRouter.patch(
   '/me/profile',
-  uploaDirectiddleware.uploadAvatar.single('avatar_url'),
+  uploadMiddleware.uploadProfileImages,
+  uploadMiddleware.validateProfileImageSizes,
   validationMiddleware.validateUserProfile,
   profileController.updateUserProfile
 );

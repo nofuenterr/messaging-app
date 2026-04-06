@@ -13,8 +13,9 @@ groupRouter.get('/me', groupController.getUserGroups);
 groupRouter.get('/', groupController.getGroups);
 groupRouter.post(
   '/',
-  uploadMiddleware.uploadAvatar.single('avatar_url'),
-  validationMiddleware.validateGroup,
+  uploadMiddleware.uploadProfileImages,
+  uploadMiddleware.validateProfileImageSizes,
+  validationMiddleware.validateCreateGroup,
   groupController.createGroup
 );
 
@@ -46,8 +47,9 @@ groupRouter.patch(
 groupRouter.get('/:id', groupController.getGroup);
 groupRouter.patch(
   '/:id',
-  uploadMiddleware.uploadAvatar.single('avatar_url'),
-  validationMiddleware.validateGroup,
+  uploadMiddleware.uploadProfileImages,
+  uploadMiddleware.validateProfileImageSizes,
+  validationMiddleware.validateUpdateGroup,
   groupController.updateGroup
 );
 groupRouter.delete('/:id', groupController.deleteGroup);
