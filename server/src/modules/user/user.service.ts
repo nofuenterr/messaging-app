@@ -20,6 +20,16 @@ export async function getUsers() {
   return userRepo.getUsers();
 }
 
+export async function getUserByUsername(username) {
+  const user = await userRepo.getUserByUsername(username);
+
+  if (!user) {
+    throw new NotFoundError("Hm, didn't work. Double check that the username is correct.");
+  }
+
+  return user;
+}
+
 export async function getUser({ id, current_user_id }, client?) {
   const user = await userRepo.getUser({ id, current_user_id }, client);
 

@@ -126,6 +126,22 @@ export async function getCurrentUserProfile(
   }
 }
 
+export async function addFriendByUsername(
+  req: ControllerRequest<{ username: string }>,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    await profileService.addFriendByUsername({
+      current_user_id: req.user.id,
+      username: req.params.username,
+    });
+    res.status(201).end();
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function sendFriendRequest(
   req: ControllerRequest<{ id: number }>,
   res: Response,

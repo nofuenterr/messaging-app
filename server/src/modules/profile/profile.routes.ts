@@ -26,6 +26,7 @@ profileRouter.get('/me/blocks', profileController.getBlockList);
 
 profileRouter.get('/me', profileController.getCurrentUserProfile);
 
+profileRouter.post('/by-username/:username/friend-request', profileController.addFriendByUsername);
 profileRouter.post('/:id/friend-request', profileController.sendFriendRequest);
 profileRouter.patch('/:id/friend-request/accept', profileController.acceptFriendRequest);
 profileRouter.patch('/:id/friend-request/decline', profileController.declineFriendRequest);

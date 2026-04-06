@@ -1,4 +1,5 @@
 import pool from '../../config/database.js';
+import { NotFoundError } from '../../utils/errors/customErrors.js';
 import * as blockService from '../block/block.service.js';
 import * as friendshipService from '../friendship/friendship.service.js';
 import * as messageService from '../message/message.service.js';
@@ -19,6 +20,19 @@ export async function getFriendship({ user_id }) {
 
 export async function getBlockList({ user_id }) {
   return blockService.getBlockList({ user_id });
+}
+
+export async function addFriendByUsername({ current_user_id, username }) {
+  const user: { id: number } = await userService.getUserByUsername(username);
+
+  if (user.id === current_user_id) {
+    throw new NotFoundError("Hm, didn't work. Double check that the username is correct.");
+  }
+
+  await friendshipService.sendFriendRequest({
+    requester_id: current_user_id,
+    receiver_id: user.id,
+  });
 }
 
 export async function sendFriendRequest({ requester_id, receiver_id }) {

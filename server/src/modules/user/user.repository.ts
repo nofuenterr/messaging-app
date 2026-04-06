@@ -36,6 +36,20 @@ export async function getUsers() {
   return rows;
 }
 
+export async function getUserByUsername(username) {
+  const { rows } = await pool.query(
+    `
+    SELECT *
+    FROM users_safe AS u
+    WHERE u.username = $1
+    LIMIT 1;
+    `,
+    [username]
+  );
+
+  return rows[0];
+}
+
 export async function getUser({ id, current_user_id }, client?) {
   const db = client ?? pool;
 
