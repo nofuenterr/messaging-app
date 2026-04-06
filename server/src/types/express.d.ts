@@ -11,6 +11,7 @@ declare module 'express-serve-static-core' {
       pronouns: string;
       bio: string;
       avatar_color: string;
+      banner_url: string;
       avatar_url: string;
       deleted: string;
       user_role: string;
