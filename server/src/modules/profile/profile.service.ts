@@ -6,8 +6,15 @@ import * as messageService from '../message/message.service.js';
 import * as noteService from '../note/note.service.js';
 import * as userService from '../user/user.service.js';
 
-export async function updateUserProfile({ id, display_name, pronouns, avatar_url, bio }) {
-  await userService.updateUserProfile({ id, display_name, pronouns, avatar_url, bio });
+export async function updateUserProfile({
+  id,
+  display_name,
+  pronouns,
+  avatar_url,
+  banner_url,
+  bio,
+}) {
+  await userService.updateUserProfile({ id, display_name, pronouns, avatar_url, banner_url, bio });
 }
 
 export async function updateUsername({ id, username }) {

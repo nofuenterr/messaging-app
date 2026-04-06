@@ -40,12 +40,20 @@ export async function getUser({ id, current_user_id }, client?) {
   return user;
 }
 
-export async function updateUserProfile({ id, display_name, pronouns, avatar_url, bio }) {
+export async function updateUserProfile({
+  id,
+  display_name,
+  pronouns,
+  avatar_url,
+  banner_url,
+  bio,
+}) {
   const isUserProfileUpdated = await userRepo.updateUserProfile({
     id,
     display_name,
     pronouns,
     avatar_url,
+    banner_url,
     bio,
   });
 

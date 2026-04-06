@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import { validationResult, matchedData } from 'express-validator';
 
 import { buildErrorObject } from '../../middleware/error.middleware.js';
-import { uploadUserAvatar } from '../../services/storage.service.js';
+import { uploadUserAvatar, uploadUserBanner } from '../../services/storage.service.js';
 import { ControllerRequest } from '../../types/controllers.type.js';
 
 import * as profileService from './profile.service.js';
@@ -15,6 +15,7 @@ export async function updateUserProfile(
       pronouns: string;
       bio: string;
       avatar_url: string;
+      banner_url: string;
     }
   >,
   res: Response,
@@ -34,13 +35,22 @@ export async function updateUserProfile(
 
     const { display_name, pronouns, bio } = matchedData(req);
 
-    const url = req.file
-      ? await uploadUserAvatar({ user_id: req.user.id, file: req.file })
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const avatarFile = files['avatar_url']?.[0];
+    const bannerFile = files['banner_url']?.[0];
+
+    const avatar_url = avatarFile
+      ? await uploadUserAvatar({ user_id: req.user.id, file: avatarFile })
       : req.body.avatar_url;
+
+    const banner_url = bannerFile
+      ? await uploadUserBanner({ user_id: req.user.id, file: bannerFile })
+      : req.body.banner_url;
 
     await profileService.updateUserProfile({
       id: req.user.id,
-      avatar_url: url,
+      avatar_url,
+      banner_url,
       display_name,
       pronouns,
       bio,
