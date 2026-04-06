@@ -1,5 +1,5 @@
 import pool from '../../config/database.js';
-import { uploadGroupAvatar } from '../../services/storage.service.js';
+import { uploadGroupAvatar, uploadGroupBanner } from '../../services/storage.service.js';
 import { NotFoundError } from '../../utils/errors/customErrors.js';
 import * as conversationService from '../conversation/conversation.service.js';
 import * as messageService from '../message/message.service.js';
@@ -20,6 +20,7 @@ export async function createGroup({
   group_name,
   group_description,
   avatar_file,
+  banner_file,
   avatar_color,
 }) {
   const client = await pool.connect();
@@ -41,22 +42,27 @@ export async function createGroup({
       throw new Error('Group not created');
     }
 
-    const url = avatar_file
+    const avatar_url = avatar_file
       ? await uploadGroupAvatar({ group_id: group.id, file: avatar_file })
       : null;
 
-    const isAvatarCreated = await groupRepo.updateGroup(
+    const banner_url = banner_file
+      ? await uploadGroupBanner({ group_id: group.id, file: banner_file })
+      : null;
+
+    const areAvatarsUploaded = await groupRepo.updateGroup(
       {
         id: group.id,
         group_name: group.group_name,
         group_description: group.group_description,
-        avatar_url: url,
+        avatar_url,
+        banner_url,
       },
       client
     );
 
-    if (!isAvatarCreated) {
-      throw new Error('Avatar not created');
+    if (!areAvatarsUploaded) {
+      throw new Error('Avatars not uploaded');
     }
 
     const isGroupJoined = await groupRepo.joinGroup(
@@ -464,6 +470,7 @@ export async function updateGroup({
   group_name,
   group_description,
   avatar_url,
+  banner_url,
 }) {
   const client = await pool.connect();
 
@@ -484,6 +491,7 @@ export async function updateGroup({
       group_name,
       group_description,
       avatar_url,
+      banner_url,
     });
 
     if (!isGroupUpdated) {

@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import { validationResult, matchedData } from 'express-validator';
 
 import { buildErrorObject } from '../../middleware/error.middleware.js';
-import { uploadGroupAvatar } from '../../services/storage.service.js';
+import { uploadGroupAvatar, uploadGroupBanner } from '../../services/storage.service.js';
 import { ControllerRequest } from '../../types/controllers.type.js';
 
 import * as groupService from './group.service.js';
@@ -32,7 +32,8 @@ export async function createGroup(
       group_name: string;
       group_description: string;
       avatar_color: string;
-      avatar_url: File | string;
+      avatar_url: File;
+      banner_url: File;
     }
   >,
   res: Response,
@@ -52,12 +53,17 @@ export async function createGroup(
 
     const { group_name, group_description, avatar_color } = matchedData(req);
 
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const avatarFile = files['avatar_url']?.[0];
+    const bannerFile = files['banner_url']?.[0];
+
     const group = await groupService.createGroup({
       owner_id: req.user.id,
       owner_name: req.user.display_name || req.user.username,
       group_name,
       group_description,
-      avatar_file: req.file,
+      avatar_file: avatarFile,
+      banner_file: bannerFile,
       avatar_color,
     });
 
@@ -285,6 +291,7 @@ export async function updateGroup(
       group_name: string;
       group_description: string;
       avatar_url: File | string;
+      banner_url: File | string;
     }
   >,
   res: Response,
@@ -304,14 +311,23 @@ export async function updateGroup(
 
     const { group_name, group_description } = matchedData(req);
 
-    const url = req.file
-      ? await uploadGroupAvatar({ group_id: req.params.id, file: req.file })
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const avatarFile = files['avatar_url']?.[0];
+    const bannerFile = files['banner_url']?.[0];
+
+    const avatar_url = avatarFile
+      ? await uploadGroupAvatar({ group_id: req.params.id, file: avatarFile })
       : req.body.avatar_url;
+
+    const banner_url = bannerFile
+      ? await uploadGroupBanner({ group_id: req.params.id, file: bannerFile })
+      : req.body.banner_url;
 
     await groupService.updateGroup({
       id: req.params.id,
       current_user_id: req.user.id,
-      avatar_url: url,
+      avatar_url,
+      banner_url,
       group_name,
       group_description,
     });
