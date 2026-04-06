@@ -1,8 +1,12 @@
-export function buildErrorObject(errors) {
-  const errorObj = {};
+import type { Result, ValidationError } from 'express-validator';
+
+export function buildErrorObject(errors: Result<ValidationError>) {
+  const errorObj: Record<string, string> = {};
 
   errors.array().forEach((err) => {
-    errorObj[err.path] = err.msg;
+    if ('path' in err) {
+      errorObj[err.path] = err.msg;
+    }
   });
 
   return errorObj;
