@@ -72,6 +72,11 @@ export async function getUser({ id, current_user_id }, client?) {
         ELSE FALSE
       END AS is_blocked,
 
+      CASE
+        WHEN ubc.user_id IS NOT NULL THEN TRUE
+        ELSE FALSE
+      END AS was_blocked,
+
       f.friendship_status,
       CASE
         WHEN f.requester_id = $2 THEN 'outgoing'
@@ -84,6 +89,10 @@ export async function getUser({ id, current_user_id }, client?) {
     LEFT JOIN user_block AS ub
       ON ub.user_id = $2
       AND ub.blocked_user_id = u.id
+
+    LEFT JOIN user_block AS ubc
+      ON ubc.user_id = u.id
+      AND ubc.blocked_user_id = $2
 
     LEFT JOIN LATERAL (
       SELECT *
