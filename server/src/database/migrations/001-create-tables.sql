@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash VARCHAR(60) NOT NULL,
   avatar_color TEXT NOT NULL DEFAULT '#b8aafe',
   avatar_url VARCHAR(255) DEFAULT '/images/users/avatar/default.webp',
+  banner_url VARCHAR(255),
   user_role VARCHAR(10) CHECK (user_role IN ('admin','user')) NOT NULL DEFAULT 'user',
   deleted TIMESTAMPTZ,
   CHECK (TRIM(username) <> ''),
@@ -19,9 +20,10 @@ CREATE TABLE IF NOT EXISTS groups (
   created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   owner_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
   group_name VARCHAR(50) NOT NULL,
-  group_description TEXT,
+  group_description VARCHAR(190),
   avatar_color TEXT NOT NULL,
   avatar_url VARCHAR(255) DEFAULT '/images/groups/avatar/default.webp',
+  banner_url VARCHAR(255),
   deleted TIMESTAMPTZ,
   CHECK (TRIM(group_name) <> '')
 );

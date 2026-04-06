@@ -8,6 +8,7 @@ SELECT
   bio,
   avatar_color,
   avatar_url,
+  banner_url,
   user_role,
   deleted
 FROM users;
