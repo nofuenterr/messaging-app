@@ -3,18 +3,18 @@ import type { Express } from 'express';
 declare module 'express-serve-static-core' {
   interface Request {
     file?: Express.Multer.File;
-    user?: {
+    user: {
       id: number;
       created: Date;
-      display_name: string;
+      display_name: string | null;
       username: string;
-      pronouns: string;
-      bio: string;
+      pronouns: string | null;
+      bio: string | null;
       avatar_color: string;
-      banner_url: string;
-      avatar_url: string;
-      deleted: string;
-      user_role: string;
+      avatar_url: string | null;
+      banner_url: string | null;
+      deleted: Date | null;
+      user_role: 'admin' | 'user';
     };
   }
 }
