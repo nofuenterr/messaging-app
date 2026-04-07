@@ -1,4 +1,12 @@
+import type { PoolClient } from 'pg';
+
 import pool from '../../config/database.js';
+import type {
+  CreateMessageParams,
+  CreatedMessage,
+  MessageRow,
+  GetConversationMessagesParams,
+} from '../../types/message.types.js';
 
 export async function createMessage(
   {
@@ -8,12 +16,12 @@ export async function createMessage(
     message_type = 'text',
     system_event_type,
     content,
-  },
-  client?
-) {
+  }: CreateMessageParams,
+  client?: PoolClient
+): Promise<CreatedMessage> {
   const db = client ?? pool;
 
-  const { rows: messages } = await db.query(
+  const { rows: messages } = await db.query<CreatedMessage>(
     `
     INSERT INTO messages (
       author_id,
@@ -43,10 +51,13 @@ export async function createMessage(
   return message;
 }
 
-export async function getConversationMessages({ conversation_id, last_message_id }, client?) {
+export async function getConversationMessages(
+  { conversation_id, last_message_id }: GetConversationMessagesParams,
+  client?: PoolClient
+): Promise<MessageRow[]> {
   const db = client ?? pool;
 
-  const { rows } = await db.query(
+  const { rows } = await db.query<MessageRow>(
     `
     SELECT
       m.id AS message_id,
@@ -133,8 +144,8 @@ export async function getConversationMessages({ conversation_id, last_message_id
   return rows;
 }
 
-export async function getMessage({ id }) {
-  const { rows } = await pool.query(
+export async function getMessage({ id }: { id: number }): Promise<MessageRow | undefined> {
+  const { rows } = await pool.query<MessageRow>(
     `
     SELECT
       m.id,
@@ -176,7 +187,15 @@ export async function getMessage({ id }) {
   return rows[0];
 }
 
-export async function updateMessage({ id, author_id, content }) {
+export async function updateMessage({
+  id,
+  author_id,
+  content,
+}: {
+  id: number;
+  author_id: number;
+  content: string;
+}): Promise<boolean> {
   const { rows } = await pool.query(
     `
     UPDATE messages
@@ -184,7 +203,7 @@ export async function updateMessage({ id, author_id, content }) {
         last_edited = NOW()
     WHERE id = $1
       AND author_id = $2
-    RETURNING id, last_edited;      
+    RETURNING id, last_edited;
     `,
     [id, author_id, content]
   );
@@ -192,7 +211,13 @@ export async function updateMessage({ id, author_id, content }) {
   return rows.length > 0;
 }
 
-export async function deleteMessage({ id, author_id }) {
+export async function deleteMessage({
+  id,
+  author_id,
+}: {
+  id: number;
+  author_id: number;
+}): Promise<boolean> {
   const { rows } = await pool.query(
     `
     UPDATE messages

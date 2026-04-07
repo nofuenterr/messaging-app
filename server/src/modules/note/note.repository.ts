@@ -1,9 +1,15 @@
-import pool from '../../config/database.js';
+import type { PoolClient } from 'pg';
 
-export async function getNote({ user_id, noted_user_id }, client?) {
+import pool from '../../config/database.js';
+import type { NoteRow, GetNoteParams, UpsertNoteParams } from '../../types/note.types.js';
+
+export async function getNote(
+  { user_id, noted_user_id }: GetNoteParams,
+  client?: PoolClient
+): Promise<NoteRow | undefined> {
   const db = client ?? pool;
 
-  const { rows } = await db.query(
+  const { rows } = await db.query<NoteRow>(
     `
     SELECT *
     FROM user_note
@@ -17,13 +23,17 @@ export async function getNote({ user_id, noted_user_id }, client?) {
   return rows[0];
 }
 
-export async function upsertNote({ user_id, noted_user_id, content }) {
+export async function upsertNote({
+  user_id,
+  noted_user_id,
+  content,
+}: UpsertNoteParams): Promise<Pick<NoteRow, 'user_id' | 'noted_user_id'> | undefined> {
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
 
-    const { rows } = await client.query(
+    const { rows } = await client.query<NoteRow>(
       `
       SELECT *
       FROM user_note
@@ -34,12 +44,11 @@ export async function upsertNote({ user_id, noted_user_id, content }) {
       [user_id, noted_user_id]
     );
 
-    const note = rows.length > 0;
+    const noteExists = rows.length > 0;
+    let new_note: Pick<NoteRow, 'user_id' | 'noted_user_id'> | undefined;
 
-    let new_note;
-
-    if (note) {
-      const { rows } = await client.query(
+    if (noteExists) {
+      const { rows } = await client.query<Pick<NoteRow, 'user_id' | 'noted_user_id'>>(
         `
         UPDATE user_note
         SET content = $3
@@ -52,13 +61,9 @@ export async function upsertNote({ user_id, noted_user_id, content }) {
 
       new_note = rows[0];
     } else {
-      const { rows } = await client.query(
+      const { rows } = await client.query<Pick<NoteRow, 'user_id' | 'noted_user_id'>>(
         `
-        INSERT INTO user_note (
-          user_id,
-          noted_user_id,
-          content
-        )
+        INSERT INTO user_note (user_id, noted_user_id, content)
         VALUES ($1, $2, $3)
         RETURNING user_id, noted_user_id;
         `,

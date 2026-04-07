@@ -1,19 +1,33 @@
+import type { PoolClient } from 'pg';
+
 import pool from '../../config/database.js';
+import type {
+  CreatedGroup,
+  CreateGroupParams,
+  GetGroupParams,
+  GetUserGroupsParams,
+  GroupRow,
+  GroupMemberRow,
+  GroupMembershipRow,
+  UpdateGroupParams,
+  UpdateGroupProfileParams,
+  JoinGroupParams,
+  LeaveGroupParams,
+  GetGroupMembershipParams,
+  GetUserGroupProfileParams,
+  DeleteGroupParams,
+} from '../../types/group.types.js';
+import type { MembershipRole, UserWithRelations } from '../../types/user.types.js';
 
 export async function createGroup(
-  { owner_id, group_name, group_description, avatar_color },
-  client?
-) {
+  { owner_id, group_name, group_description, avatar_color }: CreateGroupParams,
+  client?: PoolClient
+): Promise<CreatedGroup | undefined> {
   const db = client ?? pool;
 
-  const { rows } = await db.query(
+  const { rows } = await db.query<CreatedGroup>(
     `
-    INSERT INTO groups (
-      owner_id,
-      group_name,
-      group_description,
-      avatar_color
-    )
+    INSERT INTO groups (owner_id, group_name, group_description, avatar_color)
     VALUES ($1, $2, $3, $4)
     RETURNING id, group_name, group_description;
     `,
@@ -23,8 +37,8 @@ export async function createGroup(
   return rows[0];
 }
 
-export async function getGroups() {
-  const { rows } = await pool.query(
+export async function getGroups(): Promise<GroupRow[]> {
+  const { rows } = await pool.query<GroupRow>(
     `
     SELECT
       g.id AS group_id,
@@ -34,42 +48,24 @@ export async function getGroups() {
       g.avatar_url AS group_avatar_url,
       g.banner_url AS group_banner_url,
       g.group_description,
-
       u.id AS owner_id,
       u.display_name AS owner_display_name,
       u.username AS owner_username,
       u.avatar_color AS owner_avatar_color,
       u.avatar_url AS owner_avatar_url,
       u.banner_url AS owner_banner_url,
-
       COUNT(m.user_id) AS member_count
-
     FROM groups AS g
-
-    LEFT JOIN users_safe AS u
-      ON g.owner_id = u.id
-
+    LEFT JOIN users_safe AS u ON g.owner_id = u.id
     LEFT JOIN membership AS m
       ON m.group_id = g.id
       AND m.joined IS NOT NULL
       AND m.left_at IS NULL
-
     WHERE g.deleted IS NULL
-
-    GROUP BY 
-      g.id,
-      g.created,
-      g.group_name,
-      g.avatar_color,
-      g.avatar_url,
-      g.banner_url,
-      g.group_description,
-      u.id,
-      u.display_name,
-      u.username,
-      u.avatar_color,
-      u.avatar_url,
-      u.banner_url
+    GROUP BY
+      g.id, g.created, g.group_name, g.avatar_color, g.avatar_url,
+      g.banner_url, g.group_description, u.id, u.display_name,
+      u.username, u.avatar_color, u.avatar_url, u.banner_url
     ORDER BY g.created DESC;
     `
   );
@@ -77,10 +73,13 @@ export async function getGroups() {
   return rows;
 }
 
-export async function getGroup({ id }, client?) {
+export async function getGroup(
+  { id }: GetGroupParams,
+  client?: PoolClient
+): Promise<GroupRow | undefined> {
   const db = client ?? pool;
 
-  const { rows } = await db.query(
+  const { rows } = await db.query<GroupRow>(
     `
     SELECT
       g.id AS group_id,
@@ -90,17 +89,14 @@ export async function getGroup({ id }, client?) {
       g.avatar_color AS group_avatar_color,
       g.avatar_url AS group_avatar_url,
       g.banner_url AS group_banner_url,
-
       u.id AS owner_id,
       u.display_name AS owner_display_name,
       u.username AS owner_username,
       u.avatar_color AS owner_avatar_color,
       u.avatar_url AS owner_avatar_url,
       u.banner_url AS owner_banner_url
-
     FROM groups AS g
-    LEFT JOIN users_safe AS u
-      ON g.owner_id = u.id
+    LEFT JOIN users_safe AS u ON g.owner_id = u.id
     WHERE g.id = $1
       AND g.deleted IS NULL
     LIMIT 1;
@@ -111,8 +107,8 @@ export async function getGroup({ id }, client?) {
   return rows[0];
 }
 
-export async function getUserGroups({ user_id }) {
-  const { rows } = await pool.query(
+export async function getUserGroups({ user_id }: GetUserGroupsParams): Promise<GroupRow[]> {
+  const { rows } = await pool.query<GroupRow>(
     `
     SELECT
       g.id AS group_id,
@@ -122,58 +118,34 @@ export async function getUserGroups({ user_id }) {
       g.avatar_url AS group_avatar_url,
       g.banner_url AS group_banner_url,
       g.group_description,
-
       u.id AS owner_id,
       u.display_name AS owner_display_name,
       u.username AS owner_username,
       u.avatar_color AS owner_avatar_color,
       u.avatar_url AS owner_avatar_url,
       u.banner_url AS owner_banner_url,
-
       m.joined,
       m.membership_role,
       m.group_display_name,
       m.group_pronouns,
-
       COUNT(m_all.user_id) AS member_count
-
     FROM groups AS g
-
-    LEFT JOIN users_safe AS u
-      ON g.owner_id = u.id
-
+    LEFT JOIN users_safe AS u ON g.owner_id = u.id
     JOIN membership AS m
       ON m.group_id = g.id
-      and m.user_id = $1
+      AND m.user_id = $1
       AND m.joined IS NOT NULL
       AND m.left_at IS NULL
-
     LEFT JOIN membership AS m_all
       ON m_all.group_id = g.id
       AND m_all.left_at IS NULL
       AND m_all.joined IS NOT NULL
-      
     WHERE g.deleted IS NULL
-    
-    GROUP BY 
-      g.id,
-      g.created,
-      g.group_name,
-      g.avatar_color,
-      g.avatar_url,
-      g.banner_url,
-      g.group_description,
-      u.id,
-      u.display_name,
-      u.username,
-      u.avatar_color,
-      u.avatar_url,
-      u.banner_url,
-      m.joined,
-      m.membership_role,
-      m.group_display_name,
-      m.group_pronouns
-
+    GROUP BY
+      g.id, g.created, g.group_name, g.avatar_color, g.avatar_url,
+      g.banner_url, g.group_description, u.id, u.display_name,
+      u.username, u.avatar_color, u.avatar_url, u.banner_url,
+      m.joined, m.membership_role, m.group_display_name, m.group_pronouns
     ORDER BY m.joined DESC;
     `,
     [user_id]
@@ -182,7 +154,17 @@ export async function getUserGroups({ user_id }) {
   return rows;
 }
 
-export async function getUserGroupProfile({ id, current_user_id, group_id }, client?) {
+export async function getUserGroupProfile(
+  { id, current_user_id, group_id }: GetUserGroupProfileParams,
+  client?: PoolClient
+): Promise<
+  | (UserWithRelations & {
+      joined: Date | null;
+      left_at: Date | null;
+      membership_role: MembershipRole | null;
+    })
+  | undefined
+> {
   const db = client ?? pool;
 
   const { rows } = await db.query(
@@ -201,49 +183,31 @@ export async function getUserGroupProfile({ id, current_user_id, group_id }, cli
       u.avatar_url,
       u.banner_url,
       u.deleted,
-
-      CASE
-        WHEN ub.user_id IS NOT NULL THEN TRUE
-        ELSE FALSE
-      END AS is_blocked,
-
-      CASE
-        WHEN ubc.user_id IS NOT NULL THEN TRUE
-        ELSE FALSE
-      END AS was_blocked,
-
+      CASE WHEN ub.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS is_blocked,
+      CASE WHEN ubc.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS was_blocked,
       f.friendship_status,
       CASE
         WHEN f.requester_id = $2 THEN 'outgoing'
         WHEN f.receiver_id = $2 THEN 'incoming'
         ELSE NULL
       END AS request_direction
-
     FROM users_safe AS u
-
     LEFT JOIN user_block AS ub
-      ON ub.user_id = $2
-      AND ub.blocked_user_id = u.id
-
+      ON ub.user_id = $2 AND ub.blocked_user_id = u.id
     LEFT JOIN user_block AS ubc
-      ON ubc.user_id = u.id
-      AND ubc.blocked_user_id = $2
-
+      ON ubc.user_id = u.id AND ubc.blocked_user_id = $2
     LEFT JOIN LATERAL (
-      SELECT *
-      FROM friendship
+      SELECT * FROM friendship
       WHERE (requester_id = u.id AND receiver_id = $2)
         OR (receiver_id = u.id AND requester_id = $2)
       ORDER BY created DESC
       LIMIT 1
     ) AS f ON TRUE
-
     JOIN membership_safe AS m
       ON m.group_id = $3
-      and m.user_id = $1
+      AND m.user_id = $1
       AND m.joined IS NOT NULL
       AND m.left_at IS NULL
-
     WHERE u.id = $1
     LIMIT 1;
     `,
@@ -253,18 +217,15 @@ export async function getUserGroupProfile({ id, current_user_id, group_id }, cli
   return rows[0];
 }
 
-export async function getGroupMembership({ user_id, group_id }, client?) {
+export async function getGroupMembership(
+  { group_id, user_id }: GetGroupMembershipParams,
+  client?: PoolClient
+): Promise<GroupMembershipRow | undefined> {
   const db = client ?? pool;
 
-  const { rows } = await db.query(
+  const { rows } = await db.query<GroupMembershipRow>(
     `
-    SELECT
-      user_id,
-      joined,
-      left_at,
-      group_display_name,
-      group_pronouns,
-      membership_role
+    SELECT user_id, joined, left_at, group_display_name, group_pronouns, membership_role
     FROM membership_safe
     WHERE group_id = $1
       AND user_id = $2
@@ -276,10 +237,13 @@ export async function getGroupMembership({ user_id, group_id }, client?) {
   return rows[0];
 }
 
-export async function getGroupMembers({ id }, client?) {
+export async function getGroupMembers(
+  { id }: GetGroupParams,
+  client?: PoolClient
+): Promise<GroupMemberRow[]> {
   const db = client ?? pool;
 
-  const { rows } = await db.query(
+  const { rows } = await db.query<GroupMemberRow>(
     `
     SELECT
       u.id,
@@ -293,8 +257,7 @@ export async function getGroupMembers({ id }, client?) {
       m.group_pronouns,
       m.membership_role
     FROM users_safe AS u
-    JOIN membership_safe AS m
-      ON u.id = m.user_id
+    JOIN membership_safe AS m ON u.id = m.user_id
     WHERE m.group_id = $1
       AND m.left_at IS NULL
       AND u.deleted IS NULL;
@@ -306,9 +269,9 @@ export async function getGroupMembers({ id }, client?) {
 }
 
 export async function updateGroup(
-  { id, group_name, group_description, avatar_url, banner_url },
-  client?
-) {
+  { id, group_name, group_description, avatar_url, banner_url }: UpdateGroupParams,
+  client?: PoolClient
+): Promise<boolean> {
   const db = client ?? pool;
 
   const { rows } = await db.query(
@@ -333,7 +296,7 @@ export async function updateGroupProfile({
   user_id,
   group_display_name,
   group_pronouns,
-}) {
+}: UpdateGroupProfileParams): Promise<boolean> {
   const { rows } = await pool.query(
     `
     UPDATE membership
@@ -342,7 +305,7 @@ export async function updateGroupProfile({
     WHERE group_id = $1
       AND user_id = $2
       AND left_at IS NULL
-    RETURNING group_id, user_id, group_display_name, group_pronouns;
+    RETURNING group_id, user_id;
     `,
     [group_id, user_id, group_display_name, group_pronouns]
   );
@@ -350,7 +313,10 @@ export async function updateGroupProfile({
   return rows.length > 0;
 }
 
-export async function setGroupMemberAsAdmin({ group_id, user_id }, client?) {
+export async function setGroupMemberAsAdmin(
+  { group_id, user_id }: GetGroupMembershipParams,
+  client?: PoolClient
+): Promise<boolean> {
   const db = client ?? pool;
 
   const { rows } = await db.query(
@@ -361,7 +327,7 @@ export async function setGroupMemberAsAdmin({ group_id, user_id }, client?) {
       AND user_id = $2
       AND membership_role = 'member'
       AND left_at IS NULL
-    RETURNING group_id, user_id, membership_role;
+    RETURNING group_id, user_id;
     `,
     [group_id, user_id]
   );
@@ -369,7 +335,10 @@ export async function setGroupMemberAsAdmin({ group_id, user_id }, client?) {
   return rows.length > 0;
 }
 
-export async function setGroupAdminAsMember({ group_id, user_id }, client?) {
+export async function setGroupAdminAsMember(
+  { group_id, user_id }: GetGroupMembershipParams,
+  client?: PoolClient
+): Promise<boolean> {
   const db = client ?? pool;
 
   const { rows } = await db.query(
@@ -380,7 +349,7 @@ export async function setGroupAdminAsMember({ group_id, user_id }, client?) {
       AND user_id = $2
       AND membership_role = 'admin'
       AND left_at IS NULL
-    RETURNING group_id, user_id, membership_role;
+    RETURNING group_id, user_id;
     `,
     [group_id, user_id]
   );
@@ -388,7 +357,7 @@ export async function setGroupAdminAsMember({ group_id, user_id }, client?) {
   return rows.length > 0;
 }
 
-export async function deleteGroup({ id }) {
+export async function deleteGroup({ id }: DeleteGroupParams): Promise<boolean> {
   const { rows } = await pool.query(
     `
     UPDATE groups
@@ -403,33 +372,30 @@ export async function deleteGroup({ id }) {
   return rows.length > 0;
 }
 
-export async function joinGroup({ group_id, user_id, membership_role = 'member' }, client?) {
+export async function joinGroup(
+  { group_id, user_id, membership_role = 'member' }: JoinGroupParams,
+  client?: PoolClient
+): Promise<boolean> {
   const db = client ?? pool;
 
   const { rows } = await db.query(
     `
-    SELECT *
-    FROM membership
-    WHERE group_id = $1
-      AND user_id = $2
+    SELECT * FROM membership
+    WHERE group_id = $1 AND user_id = $2
     LIMIT 1;
     `,
     [group_id, user_id]
   );
 
-  const membership = rows.length > 0;
+  const membershipExists = rows.length > 0;
+  let join_success: boolean;
 
-  let join_success;
-
-  if (membership) {
+  if (membershipExists) {
     const { rows } = await db.query(
       `
       UPDATE membership
-      SET joined = NOW(),
-        left_at = NULL,
-        membership_role = $3
-      WHERE group_id = $1
-        AND user_id = $2
+      SET joined = NOW(), left_at = NULL, membership_role = $3
+      WHERE group_id = $1 AND user_id = $2
       RETURNING group_id, user_id;
       `,
       [group_id, user_id, membership_role]
@@ -439,11 +405,7 @@ export async function joinGroup({ group_id, user_id, membership_role = 'member' 
   } else {
     const { rows } = await db.query(
       `
-      INSERT INTO membership (
-        group_id,
-        user_id,
-        membership_role
-      )
+      INSERT INTO membership (group_id, user_id, membership_role)
       VALUES ($1, $2, $3)
       RETURNING group_id, user_id;
       `,
@@ -456,15 +418,17 @@ export async function joinGroup({ group_id, user_id, membership_role = 'member' 
   return join_success;
 }
 
-export async function leaveGroup({ group_id, user_id }, client?) {
+export async function leaveGroup(
+  { group_id, user_id }: LeaveGroupParams,
+  client?: PoolClient
+): Promise<boolean> {
   const db = client ?? pool;
 
   const { rows } = await db.query(
     `
     UPDATE membership
     SET left_at = NOW()
-    WHERE group_id = $1
-      AND user_id = $2
+    WHERE group_id = $1 AND user_id = $2
     RETURNING group_id, user_id;
     `,
     [group_id, user_id]

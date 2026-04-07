@@ -1,79 +1,64 @@
+import type { PoolClient } from 'pg';
+
+import type {
+  CreatedUser,
+  CreateUserParams,
+  DeleteUserParams,
+  GetUserParams,
+  SafeUser,
+  UpdateUsernameParams,
+  UpdateUserProfileParams,
+  UserWithRelations,
+} from '../../types/user.types.js';
 import { NotFoundError } from '../../utils/errors/customErrors.js';
 
 import * as userRepo from './user.repository.js';
 
-export async function createUser({ username, password_hash, avatar_color }) {
-  const user = await userRepo.createUser({
-    username,
-    password_hash,
-    avatar_color,
-  });
+export async function createUser(params: CreateUserParams): Promise<CreatedUser> {
+  const user = await userRepo.createUser(params);
 
-  if (!user) {
-    throw new Error('User not created');
-  }
+  if (!user) throw new Error('User could not be created');
 
   return user;
 }
 
-export async function getUsers() {
+export async function getUsers(): Promise<SafeUser[]> {
   return userRepo.getUsers();
 }
 
-export async function getUserByUsername(username) {
+export async function getUserByUsername(username: string): Promise<SafeUser> {
   const user = await userRepo.getUserByUsername(username);
 
-  if (!user) {
-    throw new NotFoundError("Hm, didn't work. Double check that the username is correct.");
-  }
+  if (!user) throw new NotFoundError('No user found with that username');
 
   return user;
 }
 
-export async function getUser({ id, current_user_id }, client?) {
-  const user = await userRepo.getUser({ id, current_user_id }, client);
+export async function getUser(
+  params: GetUserParams,
+  client?: PoolClient
+): Promise<UserWithRelations> {
+  const user = await userRepo.getUser(params, client);
 
-  if (!user) {
-    throw new NotFoundError('User not found');
-  }
+  if (!user) throw new NotFoundError('User not found');
 
   return user;
 }
 
-export async function updateUserProfile({
-  id,
-  display_name,
-  pronouns,
-  avatar_url,
-  banner_url,
-  bio,
-}) {
-  const isUserProfileUpdated = await userRepo.updateUserProfile({
-    id,
-    display_name,
-    pronouns,
-    avatar_url,
-    banner_url,
-    bio,
-  });
+export async function updateUserProfile(params: UpdateUserProfileParams): Promise<void> {
+  const updated = await userRepo.updateUserProfile(params);
 
-  if (!isUserProfileUpdated) {
-    throw new Error('User profile not updated');
-  }
+  if (!updated) throw new Error('User profile could not be updated');
 }
 
-export async function updateUsername({ id, username }) {
-  const isUsernameUpdated = await userRepo.updateUsername({ id, username });
+export async function updateUsername(params: UpdateUsernameParams): Promise<void> {
+  const updated = await userRepo.updateUsername(params);
 
-  if (!isUsernameUpdated) {
-    throw new Error('Username not updated');
-  }
+  if (!updated) throw new Error('Username could not be updated');
 }
 
-export async function deleteUser({ id }) {
-  const isUserDeleted = await userRepo.deleteUser({ id });
+export async function deleteUser(params: DeleteUserParams): Promise<void> {
+  const deleted = await userRepo.deleteUser(params);
 
-  if (!isUserDeleted) {
-    throw new Error('User not deleted');
-  }
+  if (!deleted) throw new Error('User could not be deleted');
 }

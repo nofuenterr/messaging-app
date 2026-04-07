@@ -1,20 +1,32 @@
-import pool from '../../config/database.js';
+import type { PoolClient } from 'pg';
 
-export async function createUser({ username, password_hash, avatar_color }) {
-  const { rows } = await pool.query(
+import pool from '../../config/database.js';
+import type {
+  CreatedUser,
+  CreateUserParams,
+  DeleteUserParams,
+  GetUserParams,
+  SafeUser,
+  UpdateUsernameParams,
+  UpdateUserProfileParams,
+  UserWithRelations,
+} from '../../types/user.types.js';
+
+export async function createUser(params: CreateUserParams): Promise<CreatedUser> {
+  const { rows } = await pool.query<CreatedUser>(
     `
     INSERT INTO users (username, password_hash, avatar_color) 
     VALUES ($1, $2, $3)
     RETURNING id, username;
     `,
-    [username, password_hash, avatar_color]
+    [params.username, params.password_hash, params.avatar_color]
   );
 
   return rows[0];
 }
 
-export async function getUsers() {
-  const { rows } = await pool.query(
+export async function getUsers(): Promise<SafeUser[]> {
+  const { rows } = await pool.query<SafeUser>(
     `
     SELECT
       id,
@@ -36,8 +48,8 @@ export async function getUsers() {
   return rows;
 }
 
-export async function getUserByUsername(username) {
-  const { rows } = await pool.query(
+export async function getUserByUsername(username: string): Promise<SafeUser | undefined> {
+  const { rows } = await pool.query<SafeUser>(
     `
     SELECT *
     FROM users_safe AS u
@@ -50,10 +62,13 @@ export async function getUserByUsername(username) {
   return rows[0];
 }
 
-export async function getUser({ id, current_user_id }, client?) {
+export async function getUser(
+  params: GetUserParams,
+  client?: PoolClient
+): Promise<UserWithRelations | undefined> {
   const db = client ?? pool;
 
-  const { rows } = await db.query(
+  const { rows } = await db.query<UserWithRelations>(
     `
     SELECT
       u.id,
@@ -106,20 +121,13 @@ export async function getUser({ id, current_user_id }, client?) {
     WHERE u.id = $1
     LIMIT 1;
     `,
-    [id, current_user_id]
+    [params.id, params.current_user_id]
   );
 
   return rows[0];
 }
 
-export async function updateUserProfile({
-  id,
-  display_name,
-  pronouns,
-  avatar_url,
-  banner_url,
-  bio,
-}) {
+export async function updateUserProfile(params: UpdateUserProfileParams): Promise<boolean> {
   const { rows } = await pool.query(
     `
     UPDATE users
@@ -132,13 +140,20 @@ export async function updateUserProfile({
       AND deleted IS NULL
     RETURNING id;
     `,
-    [id, display_name, pronouns, avatar_url, banner_url, bio]
+    [
+      params.id,
+      params.display_name,
+      params.pronouns,
+      params.avatar_url,
+      params.banner_url,
+      params.bio,
+    ]
   );
 
   return rows.length > 0;
 }
 
-export async function updateUsername({ id, username }) {
+export async function updateUsername(params: UpdateUsernameParams): Promise<boolean> {
   const { rows } = await pool.query(
     `
     UPDATE users
@@ -147,13 +162,13 @@ export async function updateUsername({ id, username }) {
       AND deleted IS NULL
     RETURNING id;
     `,
-    [id, username]
+    [params.id, params.username]
   );
 
   return rows.length > 0;
 }
 
-export async function deleteUser({ id }) {
+export async function deleteUser(params: DeleteUserParams): Promise<boolean> {
   const { rows } = await pool.query(
     `
     UPDATE users
@@ -162,7 +177,7 @@ export async function deleteUser({ id }) {
       AND deleted IS NULL
     RETURNING id;
     `,
-    [id]
+    [params.id]
   );
 
   return rows.length > 0;
