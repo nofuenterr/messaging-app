@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Request, type Response } from 'express';
 
 import pool from './config/database.js';
 import configurePassport from './config/passport.js';
@@ -25,8 +25,8 @@ router.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-router.use((err, req, res, next) => {
+ 
+router.use((err: { statusCode?: number; message?: string }, _req: Request, res: Response) => {
   console.error(err);
 
   res.status(err.statusCode || 500).json({

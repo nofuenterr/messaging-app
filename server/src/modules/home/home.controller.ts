@@ -8,7 +8,7 @@ export async function getUserConversationsWithLatestMessage(
   req: ControllerRequest,
   res: Response,
   next: NextFunction
-) {
+): Promise<void> {
   try {
     const conversations = await homeService.getUserConversationsWithLatestMessage({
       user_id: req.user.id,

@@ -2,9 +2,10 @@ import { NextFunction, Response } from 'express';
 import passport from 'passport';
 
 import { ControllerRequest } from '../types/controllers.type.js';
+import { SafeUser } from '../types/user.types.js';
 
 export const requireAuth = (req: ControllerRequest, res: Response, next: NextFunction) => {
-  passport.authenticate('jwt', { session: false }, (err, user) => {
+  passport.authenticate('jwt', { session: false }, (err: Error | null, user: SafeUser | false) => {
     if (err) return next(err);
 
     if (!user) {

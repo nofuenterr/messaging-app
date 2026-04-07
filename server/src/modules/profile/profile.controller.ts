@@ -4,20 +4,18 @@ import { validationResult, matchedData } from 'express-validator';
 import { buildErrorObject } from '../../middleware/error.middleware.js';
 import { uploadUserAvatar, uploadUserBanner } from '../../services/storage.service.js';
 import { ControllerRequest } from '../../types/controllers.type.js';
+import type {
+  UpdateUserProfileBody,
+  UpdateUsernameBody,
+  UpsertNoteBody,
+  CreateDirectMessageBody,
+  UpdateDirectMessageBody,
+} from '../../types/profile.types.js';
 
 import * as profileService from './profile.service.js';
 
 export async function updateUserProfile(
-  req: ControllerRequest<
-    object,
-    {
-      display_name: string;
-      pronouns: string;
-      bio: string;
-      avatar_url: string;
-      banner_url: string;
-    }
-  >,
+  req: ControllerRequest<object, UpdateUserProfileBody>,
   res: Response,
   next: NextFunction
 ) {
@@ -25,19 +23,14 @@ export async function updateUserProfile(
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      const errorObj = buildErrorObject(errors);
-
-      return res.status(400).json({
-        values: req.body,
-        errors: errorObj,
-      });
+      return res.status(400).json({ values: req.body, errors: buildErrorObject(errors) });
     }
 
     const { display_name, pronouns, bio } = matchedData(req);
 
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-    const avatarFile = files['avatar_url']?.[0];
-    const bannerFile = files['banner_url']?.[0];
+    const avatarFile = files?.['avatar_url']?.[0];
+    const bannerFile = files?.['banner_url']?.[0];
 
     const avatar_url = avatarFile
       ? await uploadUserAvatar({ user_id: req.user.id, file: avatarFile })
@@ -55,6 +48,7 @@ export async function updateUserProfile(
       pronouns,
       bio,
     });
+
     res.status(204).end();
   } catch (err) {
     next(err);
@@ -62,7 +56,7 @@ export async function updateUserProfile(
 }
 
 export async function updateUsername(
-  req: ControllerRequest<object, { username: string }>,
+  req: ControllerRequest<object, UpdateUsernameBody>,
   res: Response,
   next: NextFunction
 ) {
@@ -70,20 +64,12 @@ export async function updateUsername(
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      const errorObj = buildErrorObject(errors);
-
-      return res.status(400).json({
-        values: req.body,
-        errors: errorObj,
-      });
+      return res.status(400).json({ values: req.body, errors: buildErrorObject(errors) });
     }
 
     const { username } = matchedData(req);
 
-    await profileService.updateUsername({
-      id: req.user.id,
-      username,
-    });
+    await profileService.updateUsername({ id: req.user.id, username });
     res.status(204).end();
   } catch (err) {
     next(err);
@@ -92,9 +78,7 @@ export async function updateUsername(
 
 export async function getFriendship(req: ControllerRequest, res: Response, next: NextFunction) {
   try {
-    const friendship = await profileService.getFriendship({
-      user_id: req.user.id,
-    });
+    const friendship = await profileService.getFriendship({ user_id: req.user.id });
     res.status(200).json(friendship);
   } catch (err) {
     next(err);
@@ -103,9 +87,7 @@ export async function getFriendship(req: ControllerRequest, res: Response, next:
 
 export async function getBlockList(req: ControllerRequest, res: Response, next: NextFunction) {
   try {
-    const blockList = await profileService.getBlockList({
-      user_id: req.user.id,
-    });
+    const blockList = await profileService.getBlockList({ user_id: req.user.id });
     res.status(200).json(blockList);
   } catch (err) {
     next(err);
@@ -127,7 +109,7 @@ export async function getCurrentUserProfile(
       bio: req.user.bio,
       avatar_color: req.user.avatar_color,
       avatar_url: req.user.avatar_url,
-      banner_url: req.user?.banner_url,
+      banner_url: req.user.banner_url,
       deleted: req.user.deleted,
       user_role: req.user.user_role,
     });
@@ -249,7 +231,7 @@ export async function unblockUser(
 }
 
 export async function upsertNote(
-  req: ControllerRequest<{ id: number }, { content: string }>,
+  req: ControllerRequest<{ id: number }, UpsertNoteBody>,
   res: Response,
   next: NextFunction
 ) {
@@ -257,12 +239,7 @@ export async function upsertNote(
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      const errorObj = buildErrorObject(errors);
-
-      return res.status(400).json({
-        values: req.body,
-        errors: errorObj,
-      });
+      return res.status(400).json({ values: req.body, errors: buildErrorObject(errors) });
     }
 
     const { content } = matchedData(req);
@@ -296,15 +273,7 @@ export async function getDirectMessages(
 }
 
 export async function createDirectMessage(
-  req: ControllerRequest<
-    { id: number },
-    {
-      reply_to_message_id: number;
-      message_type: 'text' | 'system';
-      system_event_type: 'user_pin' | undefined;
-      content: string;
-    }
-  >,
+  req: ControllerRequest<{ id: number }, CreateDirectMessageBody>,
   res: Response,
   next: NextFunction
 ) {
@@ -312,21 +281,16 @@ export async function createDirectMessage(
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      const errorObj = buildErrorObject(errors);
-
-      return res.status(400).json({
-        values: req.body,
-        errors: errorObj,
-      });
+      return res.status(400).json({ values: req.body, errors: buildErrorObject(errors) });
     }
 
     const { content } = matchedData(req);
 
     const message = await profileService.createDirectMessage({
+      ...req.body,
       author_id: Number(req.user.id),
       other_user_id: Number(req.params.id),
       content,
-      ...req.body,
     });
     res.status(201).json(message);
   } catch (err) {
@@ -335,7 +299,7 @@ export async function createDirectMessage(
 }
 
 export async function updateDirectMessage(
-  req: ControllerRequest<{ messageId: number }, { content: string }>,
+  req: ControllerRequest<{ messageId: number }, UpdateDirectMessageBody>,
   res: Response,
   next: NextFunction
 ) {
@@ -343,12 +307,7 @@ export async function updateDirectMessage(
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      const errorObj = buildErrorObject(errors);
-
-      return res.status(400).json({
-        values: req.body,
-        errors: errorObj,
-      });
+      return res.status(400).json({ values: req.body, errors: buildErrorObject(errors) });
     }
 
     const { content } = matchedData(req);
