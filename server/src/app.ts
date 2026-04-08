@@ -7,6 +7,8 @@ import routes from './routes.js';
 
 const app = express();
 
+console.log('CLIENT_URL:', CLIENT_URL);
+
 app.use(
   cors({
     origin: CLIENT_URL, // React Vite default
