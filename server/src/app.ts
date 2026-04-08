@@ -9,19 +9,19 @@ const app = express();
 
 console.log('CLIENT_URL:', CLIENT_URL);
 
-const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    if (!origin || origin === CLIENT_URL) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
+app.options(
+  '*',
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
