@@ -1,3 +1,9 @@
+import AppRouter from './router';
+
 export default function App() {
-  return <div>Hello, Messaging App!</div>;
+  return (
+    <div className="bg-main-gradient relative grid min-h-dvh">
+      <AppRouter />
+    </div>
+  );
 }
