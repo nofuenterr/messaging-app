@@ -11,6 +11,7 @@
     "lib": ["DOM", "ESNext"],
     "module": "ESNext",
     "baseUrl": "./",
-    "paths": { "@/*": ["client/src/*"] }
+    "paths": { "@/*": ["client/src/*"] },
+    "ignoreDeprecations": "6.0"
   }
 }
