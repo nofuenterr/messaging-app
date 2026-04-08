@@ -22,6 +22,20 @@ app.use(
   })
 );
 
+app.options(
+  '*',
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || origin === CLIENT_URL) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
