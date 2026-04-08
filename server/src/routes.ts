@@ -25,7 +25,6 @@ router.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
- 
 router.use((err: { statusCode?: number; message?: string }, _req: Request, res: Response) => {
   console.error(err);
 

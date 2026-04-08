@@ -1,4 +1,4 @@
-import type { CreatedUser , CreateUserParams } from '../../types/user.types.js';
+import type { CreatedUser, CreateUserParams } from '../../types/user.types.js';
 import * as userService from '../user/user.service.js';
 
 export async function createUser({
