@@ -2,11 +2,8 @@
   "files": [],
   "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
     "jsx": "react-jsx",
     "lib": ["DOM", "ESNext"],
-    "module": "ESNext",
-    "baseUrl": "./",
-    "paths": { "@/*": ["src/*"] } // absolute imports
+    "module": "ESNext"
   }
 }
