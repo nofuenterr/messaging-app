@@ -1,6 +1,61 @@
 @import 'tailwindcss';
 
-@custom-variant dark (&:where(.dark, .dark *));
+@theme {
+  --color-*: initial;
+
+  --color-primary: hsl(164, 100%, 34%);
+  --color-primary-hover: hsl(164, 88%, 26%);
+  --color-primary-soft: hsl(164, 100%, 34%, 0.1);
+
+  --color-info: hsl(205, 70%, 50%);
+  --color-info-hover: hsl(205, 70%, 60%);
+  --color-info-soft: hsl(205, 70%, 60%, 0.1);
+
+  --color-success: hsl(150, 60%, 45%);
+  --color-success-hover: hsl(150, 60%, 38%);
+  --color-success-soft: hsl(150, 60%, 45%, 0.1);
+
+  --color-warning: hsl(45, 90%, 60%);
+  --color-warning-hover: hsl(45, 90%, 50%);
+  --color-warning-soft: hsl(45, 90%, 60%, 0.1);
+
+  --color-danger: hsl(0, 85%, 70%);
+  --color-danger-hover: hsl(0, 85%, 60%);
+  --color-danger-soft: hsl(0, 85%, 70%, 0.1);
+
+  --color-neutral: hsl(170, 10%, 35%);
+  --color-neutral-hover: hsl(170, 10%, 28%);
+
+  --color-dark-900: hsl(171, 25%, 10%);
+  --color-dark-800: hsl(168, 45%, 10%);
+  --color-dark-700: hsl(165, 20%, 12%);
+  --color-dark-600: hsl(162, 25%, 15%);
+  --color-dark-500: hsl(165, 18%, 18%);
+  --color-dark-400: hsl(170, 20%, 22%);
+  --color-dark-300: hsl(170, 18%, 24%);
+
+  --color-light-900: hsl(0, 0%, 100%);
+  --color-light-800: hsl(0, 0%, 100%, 0.8);
+  --color-light-700: hsl(0, 0%, 100%, 0.6);
+  --color-light-600: hsl(0, 0%, 100%, 0.5);
+  --color-light-500: hsl(0, 0%, 100%, 0.3);
+
+  --color-input-bg: hsl(162, 25%, 15%);
+  --color-input-border: hsl(0, 0%, 100%, 0.1);
+  --color-placeholder: hsl(0, 0%, 100%, 0.5);
+
+  --color-icon: hsl(0, 0%, 100%, 0.6);
+  --color-icon-muted: hsl(0, 0%, 100%, 0.4);
+  --color-icon-active: hsl(164, 100%, 34%);
+  --color-icon-bg: hsl(0, 0%, 100%, 0.08);
+
+  --color-gray: hsl(0, 0%, 60%);
+  --color-gray-800: hsl(0, 0%, 35%);
+}
+
+@utility bg-main-gradient {
+  background-image: var(--gradient-main);
+}
 
 @layer utilities {
   .no-spinner::-webkit-outer-spin-button,
@@ -14,7 +69,15 @@
   }
 }
 
+*:focus-visible {
+  outline-style: groove;
+  outline-color: var(--color-primary);
+  outline-offset: -3px;
+}
+
 :root {
+  --gradient-main: radial-gradient(circle, var(--color-dark-800) 0%, var(--color-dark-900) 100%);
+
   --font-default:
     'Font Here', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', 'Noto Color Emoji';
@@ -22,6 +85,8 @@
   font-size: 0.9375rem;
   font-weight: 500;
   line-height: 1.5625rem;
+  background-color: var(--gradient-main);
+  color: var(--color-light-900);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -29,8 +94,19 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+#root {
+  position: relative;
+  min-height: 100dvh;
+  margin: 0 auto;
+}
+
 body {
   position: relative;
   min-height: 100dvh;
   margin: 0 auto;
+}
+
+pre {
+  font-family: inherit;
+  font-size: inherit;
 }
