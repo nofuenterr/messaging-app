@@ -15,7 +15,7 @@ async function seed() {
       INSERT INTO users (username, password_hash, bio, user_role)
       VALUES ($1, $2, $3, $4)
       ON CONFLICT (username) DO UPDATE
-        SET password = EXCLUDED.password,
+        SET password_hash = EXCLUDED.password_hash,
             user_role = 'admin';
       `,
       ['One Autumn Leaf', hashedPassword, 'Administrator account', 'admin']

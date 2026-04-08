@@ -5,9 +5,6 @@
     "target": "ES2022",
     "module": "NodeNext",
     "types": ["node"],
-    "moduleResolution": "NodeNext",
-    "ignoreDeprecations": "6.0",
-    "baseUrl": "./",
-    "paths": { "@/*": ["../client/src/*"] } // optional cross-imports
+    "moduleResolution": "NodeNext"
   }
 }
