@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 
 import { getBlockList, blockUser, unblockUser } from './block.service';
 
@@ -6,7 +7,7 @@ export function useBlockList() {
   return useQuery({
     queryKey: ['blocks'],
     queryFn: getBlockList,
-    retry: (count, error: any) => {
+    retry: (count, error: AxiosError) => {
       if (error?.response?.status === 401) return false;
       return count < 3;
     },

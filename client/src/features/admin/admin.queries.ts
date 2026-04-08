@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 
 import {
   getReports,
@@ -13,7 +14,7 @@ export function useAdminReports() {
   return useQuery({
     queryKey: ['admin', 'reports'],
     queryFn: getReports,
-    retry: (count, error: any) => {
+    retry: (count, error: AxiosError) => {
       if (error?.response?.status === 401) return false;
       return count < 3;
     },
@@ -26,7 +27,7 @@ export function useAdminReport(id: number) {
     queryKey: ['admin', 'reports', id],
     queryFn: () => getReport(id),
     enabled: !!id,
-    retry: (count, error: any) => {
+    retry: (count, error: AxiosError) => {
       if (error?.response?.status === 401) return false;
       return count < 3;
     },
@@ -60,7 +61,7 @@ export function useAdminUsers() {
   return useQuery({
     queryKey: ['admin', 'users'],
     queryFn: getUsers,
-    retry: (count, error: any) => {
+    retry: (count, error: AxiosError) => {
       if (error?.response?.status === 401) return false;
       return count < 3;
     },

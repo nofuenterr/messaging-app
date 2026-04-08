@@ -18,9 +18,18 @@ export const getGroup = async (id: number) => {
 export const createGroup = async (payload: {
   group_name: string;
   group_description?: string;
+  avatar_url: File | string;
+  banner_url?: File | string;
   avatar_color: string;
 }) => {
-  const { data } = await api.post('/groups', payload);
+  const formData = new FormData();
+
+  Object.entries(payload).forEach(([key, val]) => {
+    if (val !== undefined) formData.append(key, val as string | Blob);
+  });
+
+  const { data } = await api.post('/groups', formData);
+
   return data;
 };
 
@@ -30,15 +39,16 @@ export const updateGroup = async (
     group_name?: string;
     group_description?: string;
     avatar_url?: string | File;
+    banner_url?: string | File;
   }
 ) => {
   const formData = new FormData();
+
   Object.entries(payload).forEach(([key, val]) => {
     if (val !== undefined) formData.append(key, val as string | Blob);
   });
-  await api.patch(`/groups/${id}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+
+  await api.patch(`/groups/${id}`, formData);
 };
 
 export const updateGroupProfile = async (
@@ -74,4 +84,9 @@ export const setGroupMemberAsAdmin = async (id: number, userId: number) => {
 
 export const setGroupAdminAsMember = async (id: number, userId: number) => {
   await api.patch(`/groups/${id}/set-member/${userId}`);
+};
+
+export const getUserGroupProfile = async (id: number, userId: number) => {
+  const { data } = await api.get(`/groups/${id}/${userId}/profile`);
+  return data;
 };

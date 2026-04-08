@@ -1,23 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 
 import {
-  getDMMessages,
-  createDMMessage,
-  updateDMMessage,
-  deleteDMMessage,
+  getDirectMessages,
+  createDirectMessage,
+  updateDirectMessage,
+  deleteDirectMessage,
   getGroupMessages,
   createGroupMessage,
   updateGroupMessage,
   deleteGroupMessage,
 } from './message.service';
 
-// DMs
-export function useDMMessages(id: number, lastMessageId?: number) {
+// Direct
+export function useDirectMessages(id: number, lastMessageId?: number) {
   return useQuery({
-    queryKey: ['messages', 'dm', id, lastMessageId],
-    queryFn: () => getDMMessages(id, lastMessageId),
+    queryKey: ['messages', 'direct', id, lastMessageId],
+    queryFn: () => getDirectMessages(id, lastMessageId),
     enabled: !!id,
-    retry: (count, error: any) => {
+    retry: (count, error: AxiosError) => {
       if (error?.response?.status === 401) return false;
       return count < 3;
     },
@@ -25,34 +26,35 @@ export function useDMMessages(id: number, lastMessageId?: number) {
   });
 }
 
-export function useCreateDMMessage(id: number) {
+export function useCreateDirectMessage(id: number) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: Parameters<typeof createDMMessage>[1]) => createDMMessage(id, payload),
+    mutationFn: (payload: Parameters<typeof createDirectMessage>[1]) =>
+      createDirectMessage(id, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages', 'dm', id] });
+      queryClient.invalidateQueries({ queryKey: ['messages', 'direct', id] });
       queryClient.invalidateQueries({ queryKey: ['conversationsWithLatestMessage'] });
     },
   });
 }
 
-export function useUpdateDMMessage() {
+export function useUpdateDirectMessage() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: updateDMMessage,
+    mutationFn: updateDirectMessage,
     onSuccess: (_, { userId }) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', 'dm', userId] });
+      queryClient.invalidateQueries({ queryKey: ['messages', 'direct', userId] });
       queryClient.invalidateQueries({ queryKey: ['conversationsWithLatestMessage'] });
     },
   });
 }
 
-export function useDeleteDMMessage() {
+export function useDeleteDirectMessage() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: deleteDMMessage,
+    mutationFn: deleteDirectMessage,
     onSuccess: (_, { userId }) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', 'dm', userId] });
+      queryClient.invalidateQueries({ queryKey: ['messages', 'direct', userId] });
       queryClient.invalidateQueries({ queryKey: ['conversationsWithLatestMessage'] });
     },
   });
@@ -64,7 +66,7 @@ export function useGroupMessages(groupId: number, lastMessageId?: number) {
     queryKey: ['messages', 'group', groupId, lastMessageId],
     queryFn: () => getGroupMessages(groupId, lastMessageId),
     enabled: !!groupId,
-    retry: (count, error: any) => {
+    retry: (count, error: AxiosError) => {
       if (error?.response?.status === 401) return false;
       return count < 3;
     },

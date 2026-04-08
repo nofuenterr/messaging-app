@@ -1,14 +1,14 @@
 import { api } from '../../api/axios';
 
-// DMs
-export const getDMMessages = async (id: number, lastMessageId?: number) => {
+// Direct
+export const getDirectMessages = async (id: number, lastMessageId?: number) => {
   const { data } = await api.get(`/users/${id}/messages`, {
     params: { last_message_id: lastMessageId },
   });
   return data;
 };
 
-export const createDMMessage = async (
+export const createDirectMessage = async (
   id: number,
   payload: {
     content: string;
@@ -21,7 +21,7 @@ export const createDMMessage = async (
   return data;
 };
 
-export const updateDMMessage = async (payload: {
+export const updateDirectMessage = async (payload: {
   userId: number;
   messageId: number;
   content: string;
@@ -31,7 +31,7 @@ export const updateDMMessage = async (payload: {
   });
 };
 
-export const deleteDMMessage = async (payload: { userId: number; messageId: number }) => {
+export const deleteDirectMessage = async (payload: { userId: number; messageId: number }) => {
   await api.delete(`/users/${payload.userId}/messages/${payload.messageId}`);
 };
 

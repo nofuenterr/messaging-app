@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 
 import {
   getFriendship,
+  addFriendByUsername,
   sendFriendRequest,
   acceptFriendRequest,
   declineFriendRequest,
@@ -12,11 +14,21 @@ export function useFriendship() {
   return useQuery({
     queryKey: ['friendship'],
     queryFn: getFriendship,
-    retry: (count, error: any) => {
+    retry: (count, error: AxiosError) => {
       if (error?.response?.status === 401) return false;
       return count < 3;
     },
     refetchOnWindowFocus: false,
+  });
+}
+
+export function useAddFriendByUsername() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: addFriendByUsername,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['friendship'] });
+    },
   });
 }
 

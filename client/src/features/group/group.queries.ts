@@ -1,4 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
+
+import type { GroupDetail } from '../../../../types/group.types';
 
 import {
   getGroups,
@@ -13,13 +16,14 @@ import {
   kickUser,
   setGroupMemberAsAdmin,
   setGroupAdminAsMember,
+  getUserGroupProfile,
 } from './group.service';
 
 export function useGroups() {
   return useQuery({
     queryKey: ['groups'],
     queryFn: getGroups,
-    retry: (count, error: any) => {
+    retry: (count, error: AxiosError) => {
       if (error?.response?.status === 401) return false;
       return count < 3;
     },
@@ -31,7 +35,7 @@ export function useUserGroups() {
   return useQuery({
     queryKey: ['groups', 'me'],
     queryFn: getUserGroups,
-    retry: (count, error: any) => {
+    retry: (count, error: AxiosError) => {
       if (error?.response?.status === 401) return false;
       return count < 3;
     },
@@ -44,7 +48,7 @@ export function useGroup(id: number) {
     queryKey: ['groups', id],
     queryFn: () => getGroup(id),
     enabled: !!id,
-    retry: (count, error: any) => {
+    retry: (count, error: AxiosError) => {
       if (error?.response?.status === 401) return false;
       return count < 3;
     },
@@ -58,6 +62,7 @@ export function useCreateGroup() {
     mutationFn: createGroup,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
+      queryClient.invalidateQueries({ queryKey: ['conversationsWithLatestMessage'] });
     },
   });
 }
@@ -68,6 +73,8 @@ export function useUpdateGroup(id: number) {
     mutationFn: (payload: Parameters<typeof updateGroup>[1]) => updateGroup(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groups', id] });
+      queryClient.invalidateQueries({ queryKey: ['groups', 'me'] });
+      queryClient.invalidateQueries({ queryKey: ['conversationsWithLatestMessage'] });
     },
   });
 }
@@ -77,8 +84,12 @@ export function useUpdateGroupProfile(id: number) {
   return useMutation({
     mutationFn: (payload: Parameters<typeof updateGroupProfile>[1]) =>
       updateGroupProfile(id, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['groups', id] });
+    onSuccess: (_, variables) => {
+      queryClient.setQueryData(['groups', id], (old: GroupDetail | undefined) => ({
+        ...old,
+        ...variables,
+      }));
+      queryClient.invalidateQueries({ queryKey: ['groups', 'me'] });
     },
   });
 }
@@ -100,6 +111,8 @@ export function useJoinGroup() {
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
       queryClient.invalidateQueries({ queryKey: ['groups', id] });
+      queryClient.invalidateQueries({ queryKey: ['messages', 'group', id] });
+      queryClient.invalidateQueries({ queryKey: ['conversationsWithLatestMessage'] });
     },
   });
 }
@@ -111,6 +124,8 @@ export function useLeaveGroup() {
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
       queryClient.invalidateQueries({ queryKey: ['groups', id] });
+      queryClient.invalidateQueries({ queryKey: ['messages', 'group', id] });
+      queryClient.invalidateQueries({ queryKey: ['conversationsWithLatestMessage'] });
     },
   });
 }
@@ -122,6 +137,7 @@ export function useKickUser(groupId: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
       queryClient.invalidateQueries({ queryKey: ['groups', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['conversationsWithLatestMessage'] });
     },
   });
 }
@@ -143,5 +159,18 @@ export function useSetGroupAdminAsMember(groupId: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groups', groupId] });
     },
+  });
+}
+
+export function useUserGroupProfile(id: number, userId: number) {
+  return useQuery({
+    queryKey: ['groups', id, 'users', userId],
+    queryFn: () => getUserGroupProfile(id, userId),
+    enabled: !!id && !!userId,
+    retry: (count, error: AxiosError) => {
+      if (error?.response?.status === 401) return false;
+      return count < 3;
+    },
+    refetchOnWindowFocus: false,
   });
 }

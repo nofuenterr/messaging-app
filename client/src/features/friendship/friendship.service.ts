@@ -5,6 +5,10 @@ export const getFriendship = async () => {
   return data;
 };
 
+export const addFriendByUsername = async (username: string) => {
+  await api.post(`/users/by-username/${username}/friend-request`);
+};
+
 export const sendFriendRequest = async (id: number) => {
   await api.post(`/users/${id}/friend-request`);
 };

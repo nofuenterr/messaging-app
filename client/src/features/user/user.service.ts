@@ -15,6 +15,7 @@ export const updateUserProfile = async (payload: {
   pronouns?: string;
   bio?: string;
   avatar_url?: string | File;
+  banner_url?: string | File;
 }) => {
   const formData = new FormData();
 
@@ -27,12 +28,4 @@ export const updateUserProfile = async (payload: {
 
 export const updateUsername = async (payload: { username: string }) => {
   await api.patch('/users/me/username', payload);
-};
-
-export const updateUserAvatar = async (payload: { avatar_url: string | File }) => {
-  const formData = new FormData();
-  formData.append('avatar_url', payload.avatar_url);
-  await api.patch('/users/me/avatar', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
 };
