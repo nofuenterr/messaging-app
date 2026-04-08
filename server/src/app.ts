@@ -11,8 +11,14 @@ console.log('CLIENT_URL:', CLIENT_URL);
 
 app.use(
   cors({
-    origin: CLIENT_URL, // React Vite default
-    credentials: true, // REQUIRED for cookies (JWT)
+    origin: (origin, callback) => {
+      if (!origin || origin === CLIENT_URL) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
   })
 );
 
