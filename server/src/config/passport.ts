@@ -1,18 +1,11 @@
 import { compare } from 'bcryptjs';
-import type { Request } from 'express';
 import passport from 'passport';
 import { Strategy as JwtStrategy, type StrategyOptionsWithoutRequest } from 'passport-jwt';
+import { ExtractJwt } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 import type { Pool } from 'pg';
 
 export default (pool: Pool) => {
-  const cookieExtractor = (req: Request): string | null => {
-    if (req?.cookies) {
-      return req.cookies.jwt ?? null;
-    }
-    return null;
-  };
-
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
@@ -35,7 +28,7 @@ export default (pool: Pool) => {
   );
 
   const jwtOptions: StrategyOptionsWithoutRequest = {
-    jwtFromRequest: cookieExtractor,
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: process.env.JWT_SECRET as string,
   };
 
