@@ -1,6 +1,8 @@
 # Messaging App
 
-> A full-stack real-time messaging application with group chats, media uploads, and user authentication.
+> A full-stack messaging application with group chats, media uploads, and user authentication.
+
+**Live Demo:** [messaging-app-rzgu.onrender.com](https://messaging-app-rzgu.onrender.com)
 
 ---
 
@@ -14,7 +16,7 @@ Messaging App is a full-stack chat application where users can sign up, create o
 
 - User authentication via Passport.js
 - Create and join group conversations
-- Send and receive messages in real time
+- Send and receive messages
 - Upload and share media attachments via Multer
 - Persistent sessions and global state management
 - Fully typed with TypeScript
@@ -46,25 +48,73 @@ Messaging App is a full-stack chat application where users can sign up, create o
 
 - Node.js `v18+`
 - npm or your preferred package manager
+- A running PostgreSQL database
+- A Supabase project (for storage)
 
 ### Installation
 
 ```bash
+# Clone the repository
 git clone https://github.com/nofuenterr/messaging-app.git
+
+# Navigate into the project directory
 cd messaging-app
+
+# Install dependencies for both client and server
 npm install
+npm install --prefix client
+npm install --prefix server
+```
+
+### Environment Variables
+
+Create a `.env` file inside the `server` directory and fill in the required values:
+
+```bash
+# App
+NODE_ENV=development
+PORT=3000
+CLIENT_URL=http://localhost:5173
+
+# Database (choose one or both depending on your setup)
+DATABASE_URL=
+DB_HOST=localhost
+DB_USER=postgres
+DB_PASSWORD=
+DB_NAME=
+DB_PORT=5432
+
+# Auth
+ADMIN_PASSWORD=
+SECRET=
+JWT_SECRET=
+
+# Supabase
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+```
+
+Create a `.env` file inside the `client` directory and fill in the required values:
+
+```bash
+VITE_API_URL=http://localhost:3000/
 ```
 
 ### Running the App
 
 ```bash
-npm run preview
+# Start both client and server concurrently in development mode
+npm run dev
 ```
 
 ### Build
 
 ```bash
+# Build the client for production
 npm run build
+
+# Start the production server
+npm run start
 ```
 
 ---
