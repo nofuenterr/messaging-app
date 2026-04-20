@@ -67,7 +67,7 @@ export default function MessageForm<
       />
       <TooltipComponent content="Send Message">
         <button
-          disabled={!value}
+          disabled={!value || createMessage.isPending}
           type="submit"
           className="group grid size-10 cursor-pointer place-content-center rounded-full disabled:cursor-not-allowed"
         >
