@@ -2,7 +2,10 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Loading from '../components/ui/Loading';
+import ProtectedRoute from '../components/ui/ProtectedRoute';
 import AdminLayout from '../features/admin/components/AdminNav/layout/AdminLayout';
+import Login from '../features/auth/pages/Login';
+import Signup from '../features/auth/pages/Signup';
 import MessagesLayout from '../features/conversation/components/ConversationList/layout/ConversationListLayout';
 import GroupLayout from '../features/group/components/GroupNav/layout/GroupLayout';
 import MyProfileLayout from '../features/profile/components/MyProfileNav/layout/MyProfileLayout';
@@ -10,8 +13,6 @@ import AppLayout from '../layouts/AppLayout/AppLayout';
 
 const Error = lazy(() => import('../components/ui/Error'));
 
-const Login = lazy(() => import('../features/auth/pages/Login'));
-const Signup = lazy(() => import('../features/auth/pages/Signup'));
 
 const ChatEmptyState = lazy(() => import('../features/message/pages/ChatEmptyState'));
 const DirectMessages = lazy(() => import('../features/conversation/pages/DirectConversation'));
@@ -30,16 +31,23 @@ const AllReports = lazy(() => import('../features/admin/pages/AllReports'));
 export default function AppRouter() {
   return (
     <Router>
-      <Suspense fallback={<Loading />}>
-        <Routes>
-          {/* Auth */}
-          <Route path="auth">
-            <Route path="login" element={<Login />} />
-            <Route path="signup" element={<Signup />} />
-          </Route>
+      <Routes>
+        {/* Auth */}
+        <Route path="auth">
+          <Route path="login" element={<Login />} />
+          <Route path="signup" element={<Signup />} />
+        </Route>
 
-          {/* App */}
-          <Route element={<AppLayout />} errorElement={<Error />}>
+        {/* App */}
+        <Route element={<ProtectedRoute />}>
+          <Route
+            element={
+              <Suspense fallback={<Loading />}>
+                <AppLayout />
+              </Suspense>
+            }
+            errorElement={<Error />}
+          >
             <Route errorElement={<Error />}>
               {/* Messages */}
               <Route path="/" element={<MessagesLayout />}>
@@ -68,8 +76,8 @@ export default function AppRouter() {
               </Route>
             </Route>
           </Route>
-        </Routes>
-      </Suspense>
+        </Route>
+      </Routes>
     </Router>
   );
 }
