@@ -31,8 +31,7 @@ export const authenticateLogin =
         res.cookie('token', token, {
           httpOnly: true,
           secure: NODE_ENV === 'production',
-          sameSite: 'lax',
-          domain: NODE_ENV === 'production' ? '.onrender.com' : undefined,
+          sameSite: 'none',
           maxAge: 1000 * 60 * 60,
         });
 
