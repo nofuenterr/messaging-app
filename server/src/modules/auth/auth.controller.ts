@@ -4,7 +4,7 @@ import { validationResult, matchedData } from 'express-validator';
 import jwt from 'jsonwebtoken';
 import type { PassportStatic } from 'passport';
 
-import { JWT_SECRET } from '../../config/env.js';
+import { JWT_SECRET, NODE_ENV } from '../../config/env.js';
 import { buildErrorObject } from '../../middleware/error.middleware.js';
 import { ControllerRequest } from '../../types/controllers.type.js';
 import type { SafeUser } from '../../types/user.types.js';
@@ -23,15 +23,16 @@ export const authenticateLogin =
         if (info) console.log(info.message);
 
         if (!user) {
-          return res.status(401).json({ message: 'Auth Failed' });
+          return res.status(401).json({ message: info?.message || 'Authentication failed' });
         }
 
         const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1h' });
 
-        res.cookie('jwt', token, {
+        res.cookie('token', token, {
           httpOnly: true,
-          secure: false,
-          sameSite: 'strict',
+          secure: NODE_ENV === 'production',
+          sameSite: NODE_ENV === 'production' ? 'strict' : 'lax',
+          maxAge: 1000 * 60 * 60,
         });
 
         return res.status(200).json({ message: 'Auth Passed', token, user });
@@ -80,6 +81,6 @@ export async function validateSignup(
 }
 
 export async function logoutUser(req: ControllerRequest, res: Response): Promise<void> {
-  res.clearCookie('jwt');
+  res.clearCookie('token');
   res.status(200).json({ message: 'Logged out' });
 }
