@@ -20,6 +20,7 @@ router.use('/groups', requireAuth, groupRouter);
 router.use('/reports', requireAuth, reportRouter);
 router.use('/users', requireAuth, profileRouter);
 router.use('/conversations', requireAuth, homeRouter);
+router.use('/', requireAuth);
 
 router.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
