@@ -11,7 +11,7 @@ console.log('CLIENT_URL:', CLIENT_URL);
 
 app.use(
   cors({
-    origin: true,
+    origin: CLIENT_URL,
     credentials: true,
   })
 );
