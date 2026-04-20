@@ -1,14 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
+import { queryClient } from '../../api/queryClient';
 import { checkAuth } from '../../utils/auth';
 
 import Loading from './Loading';
 
 export default function ProtectedRoute() {
-  const [status, setStatus] = useState<'loading' | 'auth' | 'unauth'>('loading');
+  const cachedUser = queryClient.getQueryData(['users', 'me']);
+  const [status, setStatus] = useState<'loading' | 'auth' | 'unauth'>(
+    cachedUser ? 'auth' : 'loading'
+  );
 
   useEffect(() => {
+    if (cachedUser) return;
     checkAuth().then((ok) => setStatus(ok ? 'auth' : 'unauth'));
   }, []);
 
