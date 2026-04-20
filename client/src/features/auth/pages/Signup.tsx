@@ -21,6 +21,10 @@ export default function Signup() {
     ? (register.error.response?.data?.errors as SignupServerErrors)
     : undefined;
 
+  const usernameAlreadyTakenError = isAxiosError(register.error)
+    ? register.error.response?.data?.message
+    : undefined;
+
   const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -50,6 +54,9 @@ export default function Signup() {
                 />
                 {serverErrors?.username && (
                   <p className="text-danger text-start text-sm">{serverErrors.username}</p>
+                )}
+                {usernameAlreadyTakenError && (
+                  <p className="text-danger text-start text-sm">{usernameAlreadyTakenError}</p>
                 )}
               </div>
 
