@@ -1,7 +1,7 @@
 import { compare } from 'bcryptjs';
+import type { Request } from 'express';
 import passport from 'passport';
 import { Strategy as JwtStrategy, type StrategyOptionsWithoutRequest } from 'passport-jwt';
-import { ExtractJwt } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 import type { Pool } from 'pg';
 
@@ -15,7 +15,8 @@ export default (pool: Pool) => {
         );
         const user = rows[0];
 
-        if (!user) return done(null, false, { message: 'Incorrect username' });
+        if (!user)
+          return done(null, false, { message: "An account with the username doesn't exist" });
 
         const match = await compare(password, user.password_hash);
         if (!match) return done(null, false, { message: 'Incorrect password' });
@@ -27,8 +28,15 @@ export default (pool: Pool) => {
     })
   );
 
+  const cookieExtractor = (req: Request): string | null => {
+    if (req?.cookies) {
+      return req.cookies.token ?? null;
+    }
+    return null;
+  };
+
   const jwtOptions: StrategyOptionsWithoutRequest = {
-    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    jwtFromRequest: cookieExtractor,
     secretOrKey: process.env.JWT_SECRET as string,
   };
 
