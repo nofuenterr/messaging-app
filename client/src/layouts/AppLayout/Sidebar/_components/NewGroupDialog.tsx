@@ -1,6 +1,6 @@
 import { isAxiosError } from 'axios';
 import { Dialog } from 'radix-ui';
-import { useState, type ReactNode, type SubmitEvent } from 'react';
+import { useState, type KeyboardEvent, type ReactNode, type SubmitEvent } from 'react';
 
 import UploadAvatarIcon from '../../../../components/icons/UploadAvatarIcon';
 import XIcon from '../../../../components/icons/XIcon';
@@ -57,7 +57,7 @@ export default function NewGroupDialog({ newGroupActive, onClose, children }: Ne
     setAvatarPreview('');
   }
 
-  function handleLabelKeyDown(e: React.KeyboardEvent<HTMLLabelElement>) {
+  function handleLabelKeyDown(e: KeyboardEvent<HTMLLabelElement>) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       e.currentTarget.querySelector('input')?.click();
@@ -205,12 +205,12 @@ export default function NewGroupDialog({ newGroupActive, onClose, children }: Ne
               </Dialog.Close>
 
               <button
-                disabled={!groupName}
+                disabled={!groupName || createGroup.isPending}
                 type="submit"
                 className="bg-info hover:bg-info-hover disabled:bg-info-soft disabled:text-light-500 min-w-35 cursor-pointer rounded-lg px-3 py-2 text-lg font-semibold disabled:cursor-not-allowed"
                 aria-label="Create"
               >
-                Create
+                {createGroup.isPending ? 'Creating group...' : 'Create'}
               </button>
             </div>
           </form>
