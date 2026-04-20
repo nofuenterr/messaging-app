@@ -17,6 +17,8 @@ export default function AppLayout() {
     queryKey: ['users', 'me'],
     queryFn: getCurrentUserProfile,
     staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   if (isLoading) return <Loading />;
