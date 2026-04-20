@@ -3,8 +3,6 @@ import { api } from '../../api/axios';
 export const login = async (payload: { username: string; password: string }) => {
   const { data } = await api.post('/auth/login', payload);
 
-  localStorage.setItem('token', data.token);
-
   return data.user;
 };
 
@@ -19,8 +17,6 @@ export const signup = async (payload: {
 
 export const logout = async () => {
   const { data } = await api.get('/auth/logout');
-
-  localStorage.removeItem('token');
 
   return data;
 };
