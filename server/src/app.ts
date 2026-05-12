@@ -10,7 +10,7 @@ const app = express();
 console.log('CLIENT_URL:', CLIENT_URL);
 
 app.options(
-  '*',
+  /.*/,
   cors({
     origin: CLIENT_URL,
     credentials: true,
