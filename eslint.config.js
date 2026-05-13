@@ -75,7 +75,7 @@ export default defineConfig([
         project: ['./client/tsconfig.app.json'], // point to client tsconfig
         warnOnMultipleTSConfigs: false,
       },
-      globals: globals.browser,
+      globals: { ...globals.browser, React: 'readonly' },
     },
     settings: { react: { version: 'detect' } },
   },
@@ -92,7 +92,7 @@ export default defineConfig([
         project: ['./server/tsconfig.app.json'], // point to server tsconfig
         warnOnMultipleTSConfigs: false,
       },
-      globals: globals.node,
+      globals: { ...globals.node, Express: 'readonly' },
     },
     settings: {
       'import/resolver': {
